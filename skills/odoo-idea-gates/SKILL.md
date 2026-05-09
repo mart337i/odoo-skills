@@ -1,9 +1,9 @@
 ---
-name: idea-gates
+name: odoo-idea-gates
 description: Odoo-aware idea validation for deciding whether a module, addon, app, or product should exist before implementation. Use when the user wants to validate an Odoo module idea, check whether a solution already exists, assess usefulness or buyer demand, narrow a wedge, or decide whether an addon is worth building.
 ---
 
-# Idea Gates
+# Odoo Idea Gates
 
 Validate the idea before designing or building it. Kill, narrow, or strengthen weak Odoo module/product ideas using evidence.
 

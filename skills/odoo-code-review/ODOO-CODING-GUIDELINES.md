@@ -243,7 +243,7 @@ Model member order:
 
 ## JavaScript
 
-For OWL-specific component lifecycle, reactivity, template, props, refs, plugin, or migration checks, use the `owl` skill. This section covers only general Odoo static-file and JavaScript guideline concerns.
+For OWL-specific component lifecycle, reactivity, template, props, refs, plugin, or migration checks, use the `odoo-owl` skill. This section covers only general Odoo static-file and JavaScript guideline concerns.
 
 Static organization:
 

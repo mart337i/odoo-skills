@@ -1,9 +1,9 @@
 ---
-name: owl
-description: OWL frontend engineering guidance for Odoo and standalone Owl apps, covering components, templates, reactivity, hooks, props, plugins, registries, debugging, and OWL 1/2/3 migration. Use when working with OWL, Odoo frontend components, @odoo/owl, static/src JavaScript/XML templates, signals, proxy, props, t-on, t-ref, t-model, registries, plugins, or OWL migrations.
+name: odoo-owl
+description: Odoo OWL frontend engineering guidance covering components, templates, reactivity, hooks, props, plugins, registries, debugging, assets, and OWL 1/2/3 migration. Use when working with Odoo frontend components, @odoo/owl, static/src JavaScript/XML templates, signals, proxy, props, t-on, t-ref, t-model, registries, plugins, or OWL migrations.
 ---
 
-# OWL
+# Odoo OWL
 
 Use this skill for OWL frontend work in Odoo addons or standalone Owl applications.
 

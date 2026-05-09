@@ -17,14 +17,14 @@ Before running Odoo update/test commands, inspect likely commands from repo docs
 
 ## Route The Task
 
-- Stress-test an Odoo plan/design before implementation: use `grill-me`.
+- Stress-test an Odoo plan/design before implementation: use `odoo-grill-me`.
 - Build or change addon behavior: use [DEVELOPMENT.md](DEVELOPMENT.md).
 - Understand an unfamiliar Odoo codebase: use [EXPLORATION.md](EXPLORATION.md).
 - Debug broken Odoo behavior: use [DEBUGGING.md](DEBUGGING.md).
 - Trace a concrete execution path through controllers, buttons, cron jobs, model methods, overrides, computes, onchanges, constraints, or side effects: use `odoo-code-tracer`.
 - Hunt for Odoo architecture/refactor opportunities: use [ARCHITECTURE.md](ARCHITECTURE.md).
 - Sync manifest/docs with implemented behavior: use [MANIFEST-DOCS.md](MANIFEST-DOCS.md).
-- Build, review, debug, or migrate OWL frontend components: use `owl`.
+- Build, review, debug, or migrate Odoo OWL frontend components: use `odoo-owl`.
 - Review Odoo code for correctness, security, performance, tests, migrations, manifests, and official coding guidelines: use `odoo-code-review`.
 - Create or improve Odoo tests using TransactionCase, HttpCase, Form helper, tags, mocks, access tests, workflow tests, or test coverage patterns: use `odoo-test-writer`.
 - Migrate an OCA addon between Odoo major versions: use `odoo-migration`.
