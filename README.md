@@ -5,11 +5,11 @@
 
 # Odoo Skills
 
-**Agent skills for Odoo engineering plus generic grilling, architecture review, documentation-aware planning, and codebase orientation.**
+**Agent skills for Odoo engineering, report design and migration, plus generic grilling, architecture review, documentation-aware planning, and codebase orientation.**
 
-[![Skills](https://img.shields.io/badge/skills-15-4f46e5?style=flat-square)](#skills)
+[![Skills](https://img.shields.io/badge/skills-21-4f46e5?style=flat-square)](#skills)
 [![Odoo](https://img.shields.io/badge/Odoo-addon%20engineering-714B67?style=flat-square)](https://www.odoo.com/)
-[![OCA](https://img.shields.io/badge/OCA-migration%208.0--19.0-0A66C2?style=flat-square)](https://odoo-community.org/)
+[![OCA](https://img.shields.io/badge/OCA-migration%208.0--20.0-0A66C2?style=flat-square)](https://odoo-community.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 [![GitHub last commit](https://img.shields.io/github/last-commit/mart337i/odoo-skills?style=flat-square)](https://github.com/mart337i/odoo-skills/commits/main)
 [![GitHub stars](https://img.shields.io/github/stars/mart337i/odoo-skills?style=flat-square&color=yellow)](https://github.com/mart337i/odoo-skills/stargazers)
@@ -126,13 +126,19 @@ The point is not more ceremony. The point is fewer security bugs, fewer broken m
 | **[odoo-17.0](./skills/odoo-17.0/SKILL.md)** | Odoo 17 reference guides for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, and views. |
 | **[odoo-18.0](./skills/odoo-18.0/SKILL.md)** | Odoo 18 reference guides for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, and views. |
 | **[odoo-19.0](./skills/odoo-19.0/SKILL.md)** | Odoo 19 reference guides for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, and views. |
+| **[odoo-20.0](./skills/odoo-20.0/SKILL.md)** | Odoo 20 reference guides for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, and views. |
 | **[odoo-code-review](./skills/odoo-code-review/SKILL.md)** | Review Odoo code for correctness, security, performance, migrations, tests, manifests, and official coding guidelines. |
 | **[odoo-code-tracer](./skills/odoo-code-tracer/SKILL.md)** | Trace execution through controllers, buttons, cron jobs, model methods, overrides, computes, onchanges, constraints, database operations, side effects, and security checks. |
 | **[odoo-grill-me](./skills/odoo-grill-me/SKILL.md)** | Stress-test Odoo plans before implementation: addon boundaries, models, security, UI flows, data, OWL, migrations, and verification. |
 | **[odoo-idea-gates](./skills/odoo-idea-gates/SKILL.md)** | Validate whether an Odoo module, addon, app, or product idea should exist: existing alternatives, buyer demand, wedge, reach, Odoo fit, and value equation. |
-| **[odoo-migration](./skills/odoo-migration/SKILL.md)** | End-to-end OCA module migration workflow for `[MIG]` pull requests, with version tips from `8.0` through `19.0`. |
+| **[odoo-migration](./skills/odoo-migration/SKILL.md)** | End-to-end OCA module migration workflow for `[MIG]` pull requests, with version tips from `8.0` through `20.0`. |
 | **[odoo-owl](./skills/odoo-owl/SKILL.md)** | Build, review, debug, and migrate Odoo OWL frontend code: components, templates, reactivity, hooks, props, plugins, registries, and assets. |
+| **[odoo-report-design](./skills/odoo-report-design/SKILL.md)** | Design and review QWeb HTML/PDF reports with print-safe assets, paper formats, pagination, localization, and stable layout. |
+| **[odoo-report-migration](./skills/odoo-report-migration/SKILL.md)** | Migrate QWeb/PDF reports across Odoo versions while preserving data, paper geometry, access behavior, and intended visual output. |
 | **[odoo-test-writer](./skills/odoo-test-writer/SKILL.md)** | Create Odoo tests with TransactionCase, SingleTransactionCase, HttpCase, AccountTestInvoicingCommon, Form helper, tags, mocks, access tests, workflow tests, and coverage patterns. |
+| **[odoo-website](./skills/odoo-website/SKILL.md)** | Build Odoo website and portal flows with QWeb, public and portal controllers, website assets, and frontend integration. |
+| **[odoo-web-security](./skills/odoo-web-security/SKILL.md)** | Review browser-facing Odoo security: public routes, portal ownership, CSRF, XSS, tokens, uploads, and `sudo()` boundaries. |
+| **[odoo-web-testing](./skills/odoo-web-testing/SKILL.md)** | Test Odoo HTTP routes, browser tours, JavaScript behavior, assets, templates, and public/portal access matrices. |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | Get a higher-level map of unfamiliar code and how the relevant modules and callers fit together. |
 
 ---
@@ -157,13 +163,19 @@ odoo-skills/
     ├── odoo-17.0/
     ├── odoo-18.0/
     ├── odoo-19.0/
+    ├── odoo-20.0/
     ├── odoo-code-review/
     ├── odoo-code-tracer/
     ├── odoo-grill-me/
     ├── odoo-idea-gates/
     ├── odoo-migration/
     ├── odoo-owl/
+    ├── odoo-report-design/
+    ├── odoo-report-migration/
     ├── odoo-test-writer/
+    ├── odoo-website/
+    ├── odoo-web-security/
+    ├── odoo-web-testing/
     └── zoom-out/
 ```
 
@@ -209,7 +221,7 @@ flowchart LR
 The skills push agents toward a simple discipline:
 
 1. Detect the Odoo version and repo shape.
-2. Use version-specific references for Odoo 17, 18, and 19 when detailed API guidance is needed.
+2. Use version-specific references for Odoo 17, 18, 19, and 20 when detailed API guidance is needed.
 3. Read manifests, models, views, security, assets, tests, and docs before editing.
 4. Trace execution paths when behavior depends on controllers, buttons, cron jobs, overrides, or side effects.
 5. Write tests at the Odoo behavior seam: ORM, form, access, workflow, controller, report, or mocked integration.
@@ -225,13 +237,16 @@ The skills push agents toward a simple discipline:
 - Odoo module and app idea validation before implementation.
 - OCA repositories.
 - OCA module migrations between major Odoo versions.
+- QWeb/PDF report design, review, and visual-preservation migrations.
 - OWL/web client frontend work.
 - Odoo code reviews and architecture checks.
 - Odoo test writing for custom modules.
 - Odoo execution tracing and impact analysis.
 - Odoo 17, 18, and 19 version-specific reference lookup.
+- Odoo 20 version-specific reference lookup.
 - Generic plan grilling, documentation-aware design work, architecture review, and codebase orientation.
 - Agents working in unfamiliar Odoo codebases.
+- Odoo website, portal, public controller, browser security, and web testing work.
 
 ---
 
@@ -245,13 +260,15 @@ OpenUpgrade workflows are not covered. The migration skill is for normal OCA mod
 
 | Metric | Value |
 |---|---|
-| Skills | 15 |
+| Skills | 21 |
 | Installer | `npx github:mart337i/odoo-skills` |
-| OCA migration coverage | `8.0` through `19.0` |
-| Version reference coverage | Odoo 17.0, 18.0, 19.0 |
+| OCA migration coverage | `8.0` through `20.0` |
+| Version reference coverage | Odoo 17.0, 18.0, 19.0, 20.0 |
 | Main focus | Odoo addon engineering plus generic engineering workflows |
-| Frontend coverage | OWL, Odoo assets, templates, reactivity, migration |
-| Testing coverage | TransactionCase, SingleTransactionCase, HttpCase, Form helper, mocks, tags, access tests |
+| Frontend coverage | OWL, Odoo assets, templates, QWeb, website, portal, reactivity, migration |
+| Report coverage | QWeb HTML/PDF design, print assets, paper formats, pagination, visual regression, report migration |
+| Web coverage | Public/portal security, CSRF, XSS, ownership, browser flows, tours, JavaScript, assets |
+| Testing coverage | TransactionCase, SingleTransactionCase, HttpCase, Form helper, mocks, tags, access tests, browser tests |
 | Safety focus | code review, execution tracing, security, multi-company, manifests, database-touching commands |
 
 ---

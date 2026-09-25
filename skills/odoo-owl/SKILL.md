@@ -21,10 +21,12 @@ Use the OWL 3 references only when the target project actually uses OWL 3. For o
 ## Route The Task
 
 - Build or change OWL components: use [OWL3-CORE.md](OWL3-CORE.md), [OWL3-TEMPLATES.md](OWL3-TEMPLATES.md), and [OWL3-STATE-LIFECYCLE.md](OWL3-STATE-LIFECYCLE.md).
-- Integrate with Odoo assets/web client: use [OWL3-ODOO-INTEGRATION.md](OWL3-ODOO-INTEGRATION.md).
+- Integrate with Odoo assets/web client: use [OWL3-ODOO-INTEGRATION.md](OWL3-ODOO-INTEGRATION.md) and [ASSETS.md](ASSETS.md).
+- Build or review field widgets: use [FIELD-WIDGETS.md](FIELD-WIDGETS.md).
 - Migrate OWL 1/2 code toward OWL 3: use [OWL3-MIGRATION.md](OWL3-MIGRATION.md), but verify local compatibility first.
 - Review frontend guideline/style concerns: compose with `odoo-code-review`.
-- Debug broken Odoo frontend behavior: compose with `odoo` debugging workflow and inspect browser/asset/test seams.
+- Debug broken Odoo frontend behavior: use [OWL-DEBUGGING.md](OWL-DEBUGGING.md), compose with `odoo` debugging workflow, and inspect browser/asset/test seams.
+- Test OWL components, widgets, services, and registries: compose with `odoo-web-testing` and [OWL-TESTING.md](../odoo-web-testing/references/OWL-TESTING.md).
 
 ## Always Apply
 

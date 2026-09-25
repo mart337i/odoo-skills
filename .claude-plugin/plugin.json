@@ -8,12 +8,18 @@
     "./skills/odoo-17.0",
     "./skills/odoo-18.0",
     "./skills/odoo-19.0",
+    "./skills/odoo-20.0",
     "./skills/odoo-code-review",
     "./skills/odoo-code-tracer",
     "./skills/odoo-grill-me",
     "./skills/odoo-idea-gates",
     "./skills/odoo-migration",
     "./skills/odoo-owl",
+    "./skills/odoo-report-design",
+    "./skills/odoo-report-migration",
+    "./skills/odoo-website",
+    "./skills/odoo-web-security",
+    "./skills/odoo-web-testing",
     "./skills/odoo-test-writer",
     "./skills/zoom-out"
   ]

@@ -1,7 +1,7 @@
 {
   "name": "@mart337i/odoo-skills",
   "version": "0.1.0",
-  "description": "Agent skills for Odoo engineering, idea validation, architecture review, plan grilling, codebase orientation, OWL frontend work, and OCA migrations.",
+  "description": "Agent skills for Odoo engineering, version references, report design and migration, website and portal development, OWL frontend work, web security, testing, idea validation, architecture review, and OCA migrations.",
   "type": "commonjs",
   "bin": {
     "odoo-skills": "./bin/odoo-skills.js"
@@ -22,6 +22,14 @@
     "idea-validation",
     "architecture",
     "owl",
+    "website",
+    "portal",
+    "reports",
+    "qweb",
+    "pdf",
+    "report-migration",
+    "web-security",
+    "web-testing",
     "code-review",
     "migration",
     "testing"

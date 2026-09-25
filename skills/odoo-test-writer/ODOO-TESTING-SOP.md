@@ -3,7 +3,7 @@
 This SOP guides testing Odoo custom modules with the Odoo test framework. It covers simple unit-style tests without external dependencies and integration tests with mocked external API requests.
 
 Version: 2.0  
-Odoo focus: 18.0, with version-specific checks via local source or `odoo-17.0`, `odoo-18.0`, and `odoo-19.0` reference skills.
+Odoo focus: 18.0, with version-specific checks via local source or `odoo-17.0`, `odoo-18.0`, `odoo-19.0`, and `odoo-20.0` reference skills.
 
 ## Key Concepts
 

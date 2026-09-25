@@ -25,10 +25,15 @@ Before running Odoo update/test commands, inspect likely commands from repo docs
 - Hunt for Odoo architecture/refactor opportunities: use [ARCHITECTURE.md](ARCHITECTURE.md).
 - Sync manifest/docs with implemented behavior: use [MANIFEST-DOCS.md](MANIFEST-DOCS.md).
 - Build, review, debug, or migrate Odoo OWL frontend components: use `odoo-owl`.
+- Build or change Odoo website, portal, public pages, QWeb integration, or website assets: use `odoo-website`.
+- Review public/portal controllers, browser-facing data, tokens, HTML output, or web trust boundaries: use `odoo-web-security`.
+- Test Odoo HTTP routes, portal/public access, browser flows, assets, or JavaScript behavior: use `odoo-web-testing`.
+- Design or review QWeb HTML/PDF report layout, print CSS, paper formats, pagination, or report assets: use `odoo-report-design`.
+- Migrate QWeb/PDF reports while preserving their visual output across Odoo versions: use `odoo-report-migration` together with `odoo-migration`.
 - Review Odoo code for correctness, security, performance, tests, migrations, manifests, and official coding guidelines: use `odoo-code-review`.
 - Create or improve Odoo tests using TransactionCase, HttpCase, Form helper, tags, mocks, access tests, workflow tests, or test coverage patterns: use `odoo-test-writer`.
 - Migrate an OCA addon between Odoo major versions: use `odoo-migration`.
-- Need detailed known-version guidance: use `odoo-17.0`, `odoo-18.0`, or `odoo-19.0`.
+- Need detailed known-version guidance: use `odoo-17.0`, `odoo-18.0`, `odoo-19.0`, or `odoo-20.0`.
 
 ## Always Apply
 

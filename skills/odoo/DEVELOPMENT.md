@@ -6,11 +6,12 @@ Use for creating or modifying Odoo addons.
 
 1. Detect the addon/module and target Odoo version. If version is not discoverable, ask.
 2. Read the relevant manifest, imports, models, views, security, data, controllers, tests, and docs before editing.
-3. Identify the smallest Odoo-native change: model extension, view inheritance, wizard, controller, report, data record, asset, or test.
-4. Check [CONVENTIONS.md](CONVENTIONS.md) before writing.
-5. Update manifest imports/data/dependencies only when the change requires it.
-6. Add or adjust tests at the Odoo behavior seam when practical.
-7. Inspect likely module update/test commands from repo docs/config, then ask the user to confirm before running them.
+3. Search the installed Odoo addons and relevant OCA repositories for an existing model, controller, view, pattern, or module before inventing a parallel implementation.
+4. Identify the smallest Odoo-native change: model extension, view inheritance, wizard, controller, report, data record, asset, or test.
+5. Check [CONVENTIONS.md](CONVENTIONS.md) before writing.
+6. Update manifest imports/data/dependencies only when the change requires it.
+7. Add or adjust tests at the Odoo behavior seam when practical.
+8. Inspect likely module update/test commands from repo docs/config, then ask the user to confirm before running them.
 
 ## Creating Addons
 

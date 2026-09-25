@@ -6,7 +6,7 @@ Use this when OWL code lives inside an Odoo addon. Verify local Odoo/OWL version
 
 Before editing Odoo frontend code, inspect:
 
-- Odoo branch/version (`16.0`, `17.0`, `18.0`, `19.0`, master, etc.).
+- Odoo branch/version (`16.0`, `17.0`, `18.0`, `19.0`, `20.0`, master, etc.).
 - `$ODOO_SOURCE` when set.
 - Local OWL source under `addons/web/static/lib/owl` or equivalent.
 - Existing imports in the addon and nearby web modules.
@@ -15,6 +15,9 @@ Before editing Odoo frontend code, inspect:
 Do not mix OWL 3 APIs into an OWL 1/2 Odoo codebase unless the task is explicitly a migration and the compatibility path is clear.
 
 ## Asset Integration
+
+For bundle declarations, ordering, lazy loading, and cache/debug diagnosis,
+see [ASSETS.md](ASSETS.md).
 
 Inspect `__manifest__.py` assets before adding files. Odoo modules commonly place frontend code under:
 
@@ -62,6 +65,10 @@ Use Odoo SCSS class conventions:
 - Keep component styles colocated in `static/src/scss` where repo convention expects them.
 
 ## Testing And Debugging
+
+For OWL component, service, registry, and field-widget tests, see
+[OWL-TESTING.md](../odoo-web-testing/references/OWL-TESTING.md). For a
+failure-oriented diagnosis flow, see [OWL-DEBUGGING.md](OWL-DEBUGGING.md).
 
 Before proposing commands, inspect `$ODOO_TOOL_README`, `$ODOO_BASE_COMMAND`, repo docs, and package scripts if present.
 

@@ -49,6 +49,7 @@ Every new `test_*.py` must be imported from `tests/__init__.py`, or the Odoo tes
 7. For external integrations, patch the boundary where it is used, then assert both state changes and mock calls.
 8. For performance-sensitive code, add `assertQueryCount` when supported by the target version/test base.
 9. Update `tests/__init__.py` and manifest dependencies only when evidence requires it.
+10. For OWL components, services, registries, and field widgets, compose with `odoo-web-testing` and its `OWL-TESTING.md` reference.
 
 ## Tags
 

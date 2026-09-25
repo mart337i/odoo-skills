@@ -25,6 +25,7 @@ If a version-specific reference skill exists, consult it before reviewing versio
 - Odoo 17: `odoo-17.0`
 - Odoo 18: `odoo-18.0`
 - Odoo 19: `odoo-19.0`
+- Odoo 20: `odoo-20.0`
 
 If `$ODOO_SOURCE` is set, inspect local framework code for APIs, XML syntax, assets, test helpers, and version-specific behavior before relying on memory.
 

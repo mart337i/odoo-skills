@@ -9,11 +9,11 @@ This guide covers normal OCA module migration and `[MIG]` pull request preparati
 ## Inputs To Detect
 
 - Source version, for example `17.0`.
-- Target version, for example `18.0`.
+- Target version, for example `20.0`.
 - Repository, for example `sale-workflow`.
 - Module path, for example `sale_order_line_sequence`.
 - Current branch, remotes, and whether target/source branches exist locally.
-- Existing migration issue named like `Migration to version 18.0`.
+- Existing migration issue named like `Migration to version 20.0`.
 - Existing tests, pre-commit config, CI config, and Odoo command conventions.
 
 If Odoo framework source or local development setup is needed, inspect the relevant environment variables when set. If they are not set, ask the user to add whichever ones apply:
@@ -30,19 +30,20 @@ Use `$ODOO_SOURCE` for framework code lookup. Use `$ODOO_BASE_COMMAND` as the lo
 
 1. Confirm source version, target version, repo, and module.
 2. Inspect the target branch module state, if any, and the source branch module history.
-3. Announce or confirm work on the related OCA migration issue when the user wants PR-ready community workflow.
-4. Create a migration branch from the target branch, named like `<target>-mig-<module>`.
-5. Apply source-branch module commits onto target branch using the OCA patch flow.
-6. Resolve conflicts without dropping history unless the user explicitly chooses a different strategy.
-7. Run the OCA-recommended formatter/pre-commit pass first when the target version guide calls for it.
-8. Commit mechanical formatting separately when the guide recommends that convention.
-9. Update the module for the target version, applying every intermediate version checklist.
-10. Bump `__manifest__.py` version to `<target>.1.0.0` unless repo policy says otherwise.
-11. Remove obsolete previous-version `migrations/` folders for normal OCA module migration.
-12. Update imports, XML, views, assets, manifest data, docs, tests, and security as required.
-13. Discover likely Odoo install/update/test commands from repo docs/config, `$ODOO_TOOL_README`, and `$ODOO_BASE_COMMAND`, then ask the user before running them.
-14. Run agreed verification and fix failures.
-15. Prepare final commit and PR title in OCA format: `[<target>][MIG] <module>: Migration to <target>`.
+3. Verify that the source and target branches exist on the OCA repository before creating migration work.
+4. Announce or confirm work on the related OCA migration issue when the user wants PR-ready community workflow.
+5. Create a migration branch from the target branch, named like `<target>-mig-<module>`.
+6. Apply source-branch module commits onto target branch using the OCA patch flow.
+7. Resolve conflicts without dropping history unless the user explicitly chooses a different strategy.
+8. Run the OCA-recommended formatter/pre-commit pass first when the target version guide calls for it.
+9. Commit mechanical formatting separately when the guide recommends that convention.
+10. Update the module for the target version, applying every intermediate version checklist.
+11. Bump `__manifest__.py` version to `<target>.1.0.0` unless repo policy says otherwise.
+12. Remove obsolete previous-version `migrations/` folders for normal OCA module migration.
+13. Update imports, XML, views, assets, manifest data, docs, tests, and security as required.
+14. Discover likely Odoo install/update/test commands from repo docs/config, `$ODOO_TOOL_README`, and `$ODOO_BASE_COMMAND`, then ask the user before running them.
+15. Run agreed verification and fix failures.
+16. Prepare final commit and PR title in OCA format: `[<target>][MIG] <module>: Migration to <target>`.
 
 ## Standard OCA Patch Flow
 
@@ -107,7 +108,11 @@ If pre-commit makes no changes, continue without an empty commit.
 
 For a jump across multiple versions, apply each target checklist in order.
 
-Example: `14.0` to `17.0` means apply `15.0`, then `16.0`, then `17.0`.
+Examples:
+
+- `14.0` to `17.0` means apply `15.0`, then `16.0`, then `17.0`.
+- `18.0` to `20.0` means apply `19.0`, then `20.0`.
+- `17.0` to `20.0` means apply `18.0`, then `19.0`, then `20.0`.
 
 ## Version Checklists
 
@@ -304,6 +309,32 @@ Example: `14.0` to `17.0` means apply `15.0`, then `16.0`, then `17.0`.
 - Replace `name_search` override parameter `args` with `domain`.
 - Tests should not rely on demo data being installed by default; create needed test data directly.
 - Fake model tests can use native registry helpers instead of `odoo-test-helper` when appropriate.
+
+### 20.0
+
+- Confirm that the OCA repository has a `20.0` target branch and that the migration issue or PR context is available before starting.
+- Bump module version to `20.0.1.0.0`, unless the repository uses a different module-version policy.
+- Use Python 3.12 through 3.14 within the Odoo 20-supported range and PostgreSQL 16 or newer for local verification.
+- Re-run the 19.0 checklist against the Odoo 20 source; do not assume that a 19.0-compatible API, XML ID, asset, or frontend pattern remains unchanged.
+- Review model declarations using `models.Constraint`, `models.Index`, `models.UniqueIndex`, `fields.Domain`, `search_fetch`, and `fetch` against the target source and module behavior.
+- Review raw SQL for ORM alternatives, `odoo.tools.SQL`, required flushes, cache invalidation, and computed-field notifications.
+- Verify list/form/search/kanban view syntax, direct conditional attributes, QWeb templates, report templates, and website/portal inheritance against Odoo 20.
+- Verify manifest dependencies, asset bundles, JavaScript module conventions, OWL components, registries, services, and templates against Odoo 20 web source.
+- Re-check controllers, JSON/HTTP route types, CSRF behavior, portal ownership, public visibility, `sudo()` boundaries, and multi-company access.
+- Add or update ORM, access, HTTP, website, JavaScript, asset, and browser-tour tests at the behavior seam where the module uses them.
+- If data migration scripts are required, use the Odoo upgrade-script contract: `migrate(cr, version)` under `migrations/<full-module-version>/` or the repository's established `upgrades/` convention.
+- Name upgrade scripts with `pre-`, `post-`, or `end-` prefixes and use lexical ordering when multiple scripts share a phase.
+- Use `odoo.upgrade.util` only when the repository and target execution environment explicitly support it; do not turn a normal OCA port into an OpenUpgrade migration.
+- Keep compatibility changes separate from feature changes, remove obsolete pre-20 migration folders, preserve authorship/copyright, and update translations and documentation.
+- Verify CI, pre-commit, module loading, and the final `[20.0][MIG] <module>: Migration to 20.0` PR title.
+
+## Odoo 20 Source References
+
+- [Odoo 20 source branch](https://github.com/odoo/odoo/tree/20.0)
+- [Odoo 20 release metadata](https://raw.githubusercontent.com/odoo/odoo/20.0/odoo/release.py)
+- [Odoo 20 ORM reference](https://github.com/odoo/documentation/blob/20.0/content/developer/reference/backend/orm.rst)
+- [Odoo 20 upgrade scripts](https://github.com/odoo/documentation/blob/20.0/content/developer/reference/upgrades/upgrade_scripts.rst)
+- [Odoo 20 upgrade utilities](https://github.com/odoo/documentation/blob/20.0/content/developer/reference/upgrades/upgrade_utils.rst)
 
 ## Verification Checklist
 

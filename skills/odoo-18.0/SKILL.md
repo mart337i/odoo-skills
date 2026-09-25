@@ -1,13 +1,6 @@
 ---
 name: odoo-18.0
-description: >
-  Odoo 18 development reference for Python models and ORM (search, domain, read_group, compute fields),
-  XML/CSV data and views, OWL/JS client code, QWeb reports, security (ACL, record rules, groups),
-  cron and server actions, migrations and module upgrades, tests, i18n, and performance.
-  Use this skill whenever work involves Odoo 18 or custom addons—even if the user only pastes a traceback,
-  mentions addons/ or __manifest__.py, describes form/list/kanban/XML errors, HTTP controllers, or
-  business rules on models—including building features, fixing bugs, refactoring, or reviewing addon code.
-globs: "**/*.{py,xml,csv,js,ts}"
+description: Odoo 18 development reference for Python models and ORM (search, domain, read_group, compute fields), XML/CSV data and views, OWL/JS client code, QWeb reports, security (ACL, record rules, groups), cron and server actions, migrations and module upgrades, tests, i18n, and performance. Use this skill whenever work involves Odoo 18 or custom addons, including traceback diagnosis, addons, manifests, XML errors, HTTP controllers, business rules, feature work, refactoring, or reviews.
 ---
 
 # Odoo 18 Skill - Master Index

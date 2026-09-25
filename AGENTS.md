@@ -30,7 +30,7 @@ Treat a repo as Odoo-related when it contains signals such as:
 - `security/ir.model.access.csv`
 - `controllers/`
 - `static/src/`
-- Odoo branch names like `16.0`, `17.0`, `18.0`, or `19.0`
+- Odoo branch names like `16.0`, `17.0`, `18.0`, `19.0`, or `20.0`
 
 ## Skill Routing
 
@@ -41,12 +41,17 @@ Treat a repo as Odoo-related when it contains signals such as:
 - Use `odoo-grill-me` when the user wants to stress-test an Odoo plan/design, get grilled on addon architecture, clarify model/security/view choices before implementation, or says "grill me" in an Odoo context.
 - Use `odoo-idea-gates` before building a new Odoo module, addon, marketplace app, or product idea when validating usefulness, existing alternatives, buyer demand, wedge, reach, Odoo fit, or whether the idea should exist at all.
 - Use `odoo-owl` for OWL/frontend component work, Odoo web client components, `@odoo/owl`, templates, hooks, reactivity, props, registries, plugins, assets, frontend debugging, and OWL migrations.
+- Use `odoo-website` for Odoo website, portal, public pages, QWeb template integration, website controllers, and frontend asset flows outside a pure OWL component.
+- Use `odoo-web-security` for public or portal routes, JSON endpoints, CSRF, record ownership, `sudo()`, XSS, unsafe HTML, tokens, uploads, and browser-facing access review.
+- Use `odoo-web-testing` for HTTP controller tests, portal/public access matrices, browser tours, JavaScript behavior, asset loading, and end-to-end Odoo web flows.
+- Use `odoo-report-design` for QWeb report layout, print CSS, paper formats, report assets, pagination, and report presentation reviews.
+- Use `odoo-report-migration` for migrating QWeb/PDF reports while preserving data semantics, paper geometry, and visual output across Odoo versions.
 - Use `odoo` for addon development, exploration, debugging, architecture, manifests, docs, security, views, models, controllers, assets, reports, and tests.
 - Use `odoo-code-review` for Odoo code reviews, pull request reviews, correctness/security/performance audits, official Odoo coding guideline checks, migration risk reviews, and test coverage reviews.
 - Use `odoo-code-tracer` when you need to trace execution from an entry point through controllers, buttons, cron jobs, model methods, overrides, computes, onchanges, constraints, database operations, side effects, and security checks.
 - Use `odoo-migration` for OCA module migration, Odoo major-version ports, `[MIG]` PRs, and version checklist work.
 - Use `odoo-test-writer` when creating or improving Odoo tests with TransactionCase, SingleTransactionCase, HttpCase, AccountTestInvoicingCommon, Form helper, tags, mocked external APIs, access tests, workflow tests, or test coverage improvements.
-- Use `odoo-17.0`, `odoo-18.0`, or `odoo-19.0` as version-specific references when the target version is known and detailed guidance is needed for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, or views.
+- Use `odoo-17.0`, `odoo-18.0`, `odoo-19.0`, or `odoo-20.0` as version-specific references when the target version is known and detailed guidance is needed for actions, controllers, data, decorators, fields, manifests, migrations, mixins, models, OWL, performance, reports, security, testing, transactions, translations, or views.
 - Do not use OpenUpgrade workflows for `odoo-migration`; that skill is scoped to normal OCA module migration.
 
 ## Command Safety
