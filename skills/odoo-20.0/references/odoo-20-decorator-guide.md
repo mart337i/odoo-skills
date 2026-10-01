@@ -373,6 +373,10 @@ def compute_sensitive_data(self):  # Name doesn't need underscore
 
 ---
 
+## Deprecated API Helpers
+
+`api.deprecated` is no longer exported from `odoo.api` in Odoo 20. Replace `api.deprecated(...)` usages after checking the target source for the supported replacement utility or remove the decorator when it only documented an already-complete migration.
+
 ---
 
 ## @api.returns

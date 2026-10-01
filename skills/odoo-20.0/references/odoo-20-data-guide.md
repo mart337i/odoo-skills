@@ -121,7 +121,8 @@ Available types:
 | `xml`, `html`   | Extract children as document, evaluate external IDs    |
 | `file`          | Ensure content is valid file path, saves `module,path` |
 | `char`          | Set content directly without alterations               |
-| `base64`        | Base64-encode content (use with `file` attribute)      |
+| `bytes`         | Load binary file content (use with `file` attribute)   |
+| `base64`        | Base64-encode inline content; file-based use is deprecated |
 | `int`, `float`  | Convert to number                                      |
 | `list`, `tuple` | Contains `value` elements                              |
 
@@ -130,8 +131,10 @@ Available types:
     <p>Hello <t t-out="user.name"/></p>
 </field>
 
-<field name="image" type="base64" file="static/img/logo.png"/>
+<field name="image" type="bytes" file="static/img/logo.png"/>
 ```
+
+Odoo 20 supports `type="bytes" file="..."` for binary file data. `type="base64" file="..."` still works but emits migration warnings; use `bytes` for new or migrated XML.
 
 #### eval
 
@@ -205,6 +208,8 @@ Via `value` elements:
 </function>
 ```
 
+Odoo 20 blocks XML function names containing `__` and unsafe attributes. Non-model XML function calls skip falsy record ids, so migration scripts should not depend on falsy placeholder ids being passed through.
+
 ---
 
 ## Shortcuts
@@ -268,6 +273,24 @@ Creates an `ir.asset` record:
 ## CSV Data Files
 
 XML is verbose for bulk creation. CSV files are simpler for same-model records.
+
+### Odoo 20 Access CSV
+
+Security access files use `ir.access` in Odoo 20:
+
+```csv
+id,name,model_id,group_id/id,operation,domain
+access_my_model_user,my.model user,my.model,base.group_user,cru,"[('create_uid', '=', user.id)]"
+access_my_model_manager,my.model manager,my.model,my_module.group_my_module_manager,crud,
+```
+
+Use `operation` letters `c`, `r`, `u`, and `d`; do not use older `perm_read`, `perm_write`, `perm_create`, or `perm_unlink` columns in new 20.0 examples.
+
+### Odoo 20 Translatable Imports
+
+Odoo 20 import/export understands translated field columns such as `name@fr_FR`. Export metadata includes whether fields are translatable. Custom import/export code should preserve translation dict/list structures instead of flattening them to one language.
+
+For XLS/XLSX imports, HTML fields can receive HTML-like values after newline or rich-text conversion. Test validators and cleanup hooks with at least one `Html` field containing newlines and rich formatting.
 
 ### Structure
 

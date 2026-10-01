@@ -10,6 +10,7 @@ Guide for adding translations and localization in Odoo 20: Python, JavaScript, a
 - [QWeb Translations](#qweb-translations)
 - [Translated Fields](#translated-fields)
 - [Export/Import](#exportimport)
+- [Odoo 20 Translation UI](#odoo-20-translation-ui)
 - [Languages](#languages)
 
 ---
@@ -30,6 +31,8 @@ Odoo supports multi-language through:
 | `.po`  | Portable Object (main format) |
 | `.pot` | Portable Object Template      |
 | `.csv` | For some data imports         |
+
+Odoo 20 adds a translation-mode module exposed through the command palette and a contextual UI oriented around Weblate. Prefer that UI for interactive module translation reviews, and keep CLI import/export for repeatable module artifacts.
 
 ---
 
@@ -236,6 +239,28 @@ odoo-bin -d mydb -l fr --i18n-import=/path/to/fr.po --stop-after-init
 ```bash
 odoo-bin -d mydb -l fr --i18n-overwrite --stop-after-init
 ```
+
+### Multilingual Field Import/Export
+
+Odoo 20 can import multilingual values for translatable text fields through Excel or CSV and export translatable fields per language with their ISO language code. Headers can include language suffixes such as `name@fr_FR`. Use this for customer-owned content or one-off content migration, but keep module translations in `.po` files when they belong to source control.
+
+When testing multilingual import/export:
+
+- Include at least one `Char`, `Text`, or `Html` field with `translate=True`.
+- Verify generated import/export metadata marks translatable fields correctly.
+- Verify the fallback language value and one translated value after import.
+- Export the same records and confirm the language code is preserved in headers such as `name@fr_FR`.
+- Preserve translation dict/list structures in custom import/export code instead of converting them to a single string.
+- For XLS/XLSX import of `Html` fields, test newline and rich-text values because Odoo 20 may convert them to HTML-like content before validation hooks run.
+
+---
+
+## Odoo 20 Translation UI
+
+- Install the Translation Mode module when interactive translation review is needed.
+- Activate translation mode from the command palette and use the contextual UI for text and HTML fields.
+- Use the translation wizard for business records with translatable text/HTML content.
+- For QWeb reports, prefer block-level review that keeps technical context visible; then render the report in each target language to catch layout regressions.
 
 ---
 

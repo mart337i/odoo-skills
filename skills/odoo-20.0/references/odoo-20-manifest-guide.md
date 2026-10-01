@@ -186,6 +186,8 @@ Data files only loaded in demonstration mode.
 ],
 ```
 
+Odoo 20 no longer supports the legacy manifest keys `init_xml`, `update_xml`, and `demo_xml`. Move old `init_xml` and `update_xml` entries into `data`, and move `demo_xml` entries into `demo`.
+
 ---
 
 ## Assets
@@ -205,6 +207,8 @@ Definition of how static files are loaded in asset bundles.
     ],
 },
 ```
+
+Odoo 20 frontend tests target Hoot `.test.js` files and app helpers. Do not add new QUnit-era bundles such as `web.qunit_suite_tests`; migrate test assets to the current test bundle conventions in the target source.
 
 ---
 

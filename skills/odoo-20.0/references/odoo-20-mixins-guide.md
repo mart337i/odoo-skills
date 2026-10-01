@@ -95,6 +95,8 @@ record.message_post_with_template(
 )
 ```
 
+Odoo 20 mail templates support `partner_cc`. Generated report attachments use raw binary values through `BinaryBytes`/`raw`-style content, not base64 strings. Custom code that consumes rendered template attachments should expect raw content-like values and only base64-encode at the boundary that requires it.
+
 ---
 
 ### Receiving Messages
@@ -192,6 +194,10 @@ partner_id = fields.Many2one('res.partner', tracking=True)
 partner_id = fields.Many2one('res.partner', tracking='name')
 ```
 
+Odoo 20 tracking values are no longer stored as separate default records. The tracking message is generated on the fly, and features that used stored tracking values in older versions need a source check or the dedicated compatibility module. Do not build new reports or business logic by querying `mail.tracking.value` in 20.0.
+
+For outgoing email auditing, `mail.mail` keeps the source body in `body_html`; `body_content` is computed from that source. If you customize delivery or audit outgoing mail, preserve that distinction instead of writing both fields independently.
+
 ---
 
 ## Activities
@@ -225,6 +231,8 @@ activities.action_done()
 # Feedback
 activities.action_feedback(feedback='Completed')
 ```
+
+Odoo 20 release notes add role assignment for activities in addition to individual users. Before adding custom activity assignment logic, inspect the target source for the role model/field names and test the generated activity in chatter.
 
 ---
 

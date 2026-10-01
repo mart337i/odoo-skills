@@ -6,6 +6,7 @@ Guide for handling database transactions in Odoo 20: errors, savepoints, and ser
 - [Transaction Overview](#transaction-overview)
 - [Database Errors](#database-errors)
 - [Savepoints](#savepoints)
+- [Transaction APIs](#transaction-apis)
 - [Error Handling](#error-handling)
 - [Serialization Failures](#serialization-failures)
 - [Best Practices](#best-practices)
@@ -93,6 +94,22 @@ finally:
     # Release savepoint
     self.env.cr.execute("RELEASE SAVEPOINT my_savepoint")
 ```
+
+---
+
+## Transaction APIs
+
+Odoo 20 centralizes registry and cache transaction operations under `env.transaction`:
+
+| API | Use |
+| --- | --- |
+| `env.transaction.will_change_registry()` | Call before tests/tools mutate the registry |
+| `env.transaction.invalidate_ormcache(...)` | Invalidate ORM cache entries |
+| `env.transaction.clear()` | Clear transaction-scoped state |
+| `env.transaction.reset()` | Reset transaction state after low-level failure handling |
+| `env.transaction.invalidate_access_cache(...)` | Invalidate access-related caches |
+
+Migrate old registry/cursor cache-clearing helpers to these APIs after checking the target source for the expected arguments. Tests that create models, fields, or registry-visible metadata should call `will_change_registry()` before the mutation.
 
 ---
 

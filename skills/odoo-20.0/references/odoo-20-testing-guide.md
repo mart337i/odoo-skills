@@ -78,22 +78,9 @@ class TestMyModel(TransactionCase):
         self.assertEqual(record.name, 'Test')
 ```
 
-### SingleTransactionCase
+### SingleTransactionCase Removed
 
-Runs all tests in a single transaction (not rolled back). Faster, but tests can affect each other.
-
-```python
-from odoo.tests import SingleTransactionCase
-
-class TestMyModel(SingleTransactionCase):
-    def test_1_first(self):
-        # Creates data
-        pass
-
-    def test_2_second(self):
-        # Can use data from test_1_first
-        pass
-```
+`SingleTransactionCase` is not available in Odoo 20. Migrate imports to supported test classes such as `TransactionCase` or `HttpCase`, and audit tests that depended on data shared across test methods.
 
 ### HttpCase
 
@@ -125,14 +112,12 @@ class NiceTest(TransactionCase):
 
 ### Default Tags
 
-- `standard` - Default tag (selected by `--test-tags`)
-- `at_install` - Run after module installation (default)
-- `post_install` - Run after all modules installed
+Untagged Odoo 20 tests default to `standard` and `post_install`. Tests that must run during module installation need explicit install-time tags:
 
 ```python
-@tagged('-at_install', 'post_install')
-class WebsiteVisitorTests(HttpCase):
-    def test_create_visitor(self):
+@tagged('at_install', '-post_install')
+class InstallTimeTests(TransactionCase):
+    def test_defaults_available_during_install(self):
         pass
 ```
 
@@ -240,26 +225,29 @@ Test files go in `static/tests/`:
 your_module/
 └── static/
     └── tests/
-        └── my_test.js
+        └── my_test.test.js
 ```
 
 ```javascript
-import { start } from '@mail/utils/test_utils';
+import { expect, test } from "@odoo/hoot";
+import { defineModels, getService, makeTestApp, models } from "@web/../tests/web_test_helpers";
 
-QUnit.module('My Module', {
-    beforeEach() {
-        this.data = {
-            records: {
-                'my.model': [{id: 1, name: 'Test'}],
-            },
-        };
-    },
-}, function () {
-    QUnit.test('my test', async function (assert) {
-        // Test code here
-    });
+class MyModel extends models.Model {
+    _name = "my.model";
+    _records = [{ id: 1, name: "Test" }];
+}
+
+defineModels([MyModel]);
+
+test("reads records through the ORM service", async () => {
+    await makeTestApp();
+    await expect(getService("orm").searchRead("my.model", [], ["name"])).resolves.toEqual([
+        { id: 1, name: "Test" },
+    ]);
 });
 ```
+
+Legacy QUnit-era paths are not the Odoo 20 target shape. Migrate tests using `/web/tests/legacy`, `web.qunit_suite_tests`, `QUnit.*`, or env-centric helpers such as `makeMockEnv`/`env_test_helpers` to Hoot `.test.js` files and app helpers. `getService("name")` can still return legacy compatibility services; use `getService(PluginClass)` for converted plugins.
 
 ---
 
@@ -361,6 +349,12 @@ class TestMyTour(HttpCase):
 | `check` | Checks checkbox |
 | `uncheck` | Unchecks checkbox |
 | `clear` | Clears input |
+
+### Odoo 20 Browser Coverage Notes
+
+- Offline mode can create, edit, archive, unarchive, delete, and reuse previous searches. For custom web-client behavior that writes records, add at least one test or manual check for lost connection/retry behavior when the module is expected to work offline.
+- List and Kanban views support multi-record drag/drop. When a module overrides ordering, stages, or grouped movement, test multi-record movement and not only the single-record happy path.
+- Many2one fields synchronize more aggressively with the backend. For custom Many2one widgets/domains, assert both the rendered value and the saved record value after onchange/save.
 
 ### Run Tour from Browser
 
@@ -469,10 +463,10 @@ odoo-bin --screencasts /tmp/screencasts
 | Tag | Description |
 |-----|-------------|
 | `standard` | Default tag for BaseCase subclasses |
-| `at_install` | Run after module installation (default) |
-| `post_install` | Run after all modules installed |
+| `post_install` | Default execution phase for untagged Odoo 20 tests |
+| `at_install` | Run after module installation when explicitly tagged |
 | `-standard` | Remove from default |
-| `-at_install` | Don't run at install (use with `post_install`) |
+| `-post_install` | Do not run in the default post-install phase |
 
 ---
 

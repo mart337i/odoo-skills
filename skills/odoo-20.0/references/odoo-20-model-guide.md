@@ -70,6 +70,12 @@ class CustomNameModel(models.Model):
 | `models.TransientModel` | Temporary/wizard model             |
 | `models.AbstractModel`  | Abstract model (no database table) |
 
+### Odoo 20 Model Notes
+
+- Contacts support multiple partner identifiers through the Multi-ID feature. Before adding custom DUNS/VAT/local identifier fields to `res.partner`, inspect the target source for the standard identifier model and validation hooks.
+- If a model participates in offline-capable web flows, treat create/write/archive/delete operations as potentially replayed after reconnection and make server-side constraints idempotent.
+- Access filtering is handled through `ir.access` domains in Odoo 20. When adding model methods that call `sudo()`, re-check whether the access domain should still apply manually.
+
 ---
 
 ## Fields
@@ -430,6 +436,8 @@ domain = '!', [('state', '=', 'draft')]
 
 ### Domain Class
 
+Legacy imports from `odoo.osv.expression` are not valid for Odoo 20 migrations. Use `odoo.fields.Domain` or the target source's `odoo.orm.domains.Domain` helpers instead of `from odoo.osv import expression`.
+
 ```python
 from odoo.fields import Domain
 
@@ -476,6 +484,22 @@ records = self.env['model'].search_fetch(domain, ['field1', 'field2'])
 # Name search
 records = self.env['model'].name_search('keyword', operator='ilike')
 ```
+
+### Grouped Reads
+
+Odoo 20 finalizes the backend `read_group` API:
+
+```python
+results = self.env['sale.order'].read_group(
+    domain=[('state', '=', 'sale')],
+    groupby=['partner_id'],
+    aggregates=['amount_total:sum'],
+    having=[],
+    order='partner_id',
+)
+```
+
+The Odoo 20 backend API returns tuple-style grouped results. Do not migrate old code by keeping `read_group(domain, fields, groupby, lazy=True)`. Use `formatted_read_group` when the caller needs web/list-view-style formatted dictionaries.
 
 ---
 

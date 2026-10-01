@@ -16,6 +16,19 @@ Identify the source and target versions, module and report XML IDs, current
 rendering environment, report action, template chain, paper format, assets,
 custom value provider, and the visual requirements that must remain stable.
 
+## OCA Process Still Applies
+
+Report work is not process-free. When a report migration is part of a module
+`[MIG]`, the full OCA process in
+[odoo-migration](../odoo-migration/SKILL.md) still applies end to end:
+announcing the module(s) on the `Migration to version <target>` issue,
+creating the `<target>-mig-<module>` branch, the `[MIG]` commit, pushing to
+the contributor's fork, and opening the pull request titled
+`[<target>][MIG] <module>: Migration to <target>`. Rendering equivalence is
+an acceptance criterion for the pull request, not a substitute for it. Do not
+post, push, or open the pull request without the same explicit confirmation
+required by `odoo-migration`.
+
 ## Workflow
 
 1. Freeze a baseline. Render HTML and PDF using deterministic records and
@@ -49,4 +62,8 @@ custom value provider, and the visual requirements that must remain stable.
 
 - [REPORT-MIGRATION.md](REPORT-MIGRATION.md) - end-to-end migration procedure.
 - [VISUAL-REGRESSION.md](VISUAL-REGRESSION.md) - practical output comparison workflow.
-- [REPORT-VERSION-MATRIX.md](REPORT-VERSION-MATRIX.md) - version-sensitive audit points.
+- [REPORT-VERSION-MATRIX.md](REPORT-VERSION-MATRIX.md) - version-sensitive audit points, 8.0 to 20.0.
+
+The OCA version guides themselves are at
+`https://github.com/OCA/maintainer-tools/wiki/Migration-to-version-<version>`.
+The wiki is authoritative over this pack.

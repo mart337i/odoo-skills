@@ -89,21 +89,18 @@ def _compute_count(self):
         record.count = other_model.search_count(domain)
 ```
 
-**GOOD**: Use `_read_group` (1 query)
-
-For Odoo 20, verify the aggregation API and return shape against the target
-source. The current ORM documentation emphasizes `_read_group()` for efficient
-server-side aggregation; do not assume a method's visibility or return shape
-from another Odoo version.
+**GOOD**: Use Odoo 20 grouped reads (1 query)
 
 ```python
 def _compute_count(self):
     domain = [('related_id', 'in', self.ids)]
     counts_data = other_model._read_group(domain, ['related_id'], ['__count'])
-    mapped_data = {r['related_id'][0]: r['__count'] for r in counts_data}
+    mapped_data = {related.id: count for related, count in counts_data}
     for record in self:
         record.count = mapped_data.get(record.id, 0)
 ```
+
+Odoo 20 `read_group()` and `_read_group()` use the final backend signature `domain, groupby, aggregates, having, offset, limit, order` and return tuples. Use `formatted_read_group` only when web-style dictionaries are required.
 
 ### Batch Creates
 

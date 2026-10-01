@@ -17,6 +17,8 @@ Guide for creating HTTP controllers and routes in Odoo 20.
 
 Controllers provide extensibility similar to models, but with a separate mechanism (since database may not be available).
 
+Odoo 20 split HTTP internals into the `odoo/http/` package. Keep custom code on public APIs such as `http.Controller`, `http.route`, `http.request`, and `http.Response`; private imports from old monolithic `odoo/http.py` internals are migration risks.
+
 Controllers are created by inheriting from `odoo.http.Controller`:
 
 ```python
@@ -76,9 +78,9 @@ def hello(self):
 | Parameter | Description                                    |
 | --------- | ---------------------------------------------- |
 | `route`   | Route path(s) (string or list)                 |
-| `auth`    | Authentication type (`public`, `user`, `none`) |
+| `auth`    | Authentication type (`public`, `user`, `none`, `bearer`) |
 | `methods` | Allowed HTTP methods (`GET`, `POST`, etc.)     |
-| `type`    | Response type (`http`, `json`)                 |
+| `type`    | Response type (`http`, `jsonrpc`)              |
 | `website` | Boolean: bind to current website               |
 | `csrf`    | Boolean: CSRF protection (default: True)       |
 | `sitemap` | Boolean or sitemap config                      |
@@ -94,11 +96,11 @@ def hello_bonjour(self):
 ### HTTP Methods
 
 ```python
-@http.route('/api/data', methods=['GET'], auth='user', type='json')
+@http.route('/api/data', methods=['GET'], auth='user', type='jsonrpc')
 def get_data(self):
     return {'data': 'value'}
 
-@http.route('/api/data', methods=['POST'], auth='user', type='json')
+@http.route('/api/data', methods=['POST'], auth='user', type='jsonrpc')
 def post_data(self, **kwargs):
     return {'result': 'created'}
 ```
@@ -115,6 +117,7 @@ def post_data(self, **kwargs):
 | `user`    | Requires active user session  |
 | `none`    | No authentication, no session |
 | `website` | Public with website support   |
+| `bearer`  | Bearer-token route; provide `bearer_scope` in Odoo 20 |
 
 ### Examples
 
@@ -130,10 +133,19 @@ def user_page(self):
     return "Only logged users can see this"
 
 # No authentication
-@http.route('/api/status', auth='none', type='json')
+@http.route('/api/status', auth='none', type='jsonrpc')
 def status(self):
     return {'status': 'ok'}
 ```
+
+For `auth="bearer"`, declare the route's `bearer_scope` explicitly and review token ownership/record access with the Odoo web-security guidance.
+
+### Odoo 20 Website/Portal Notes
+
+- Website URLs support translated/static-page behavior and Unicode normalization improvements. When adding public routes, test each website language and avoid assuming a single ASCII-only URL is canonical.
+- Portal cards can be customized and reordered. Prefer existing portal extension points before replacing portal templates wholesale.
+- Website forms have stronger field-level limits in standard flows, including file-type, character, email-domain, dynamic date, and property-field behavior. If a custom controller accepts equivalent data, enforce the same limits server-side.
+- SEO defaults changed around adaptive images, structured data, sitemap eligibility, and `llms.txt`. Do not hardcode sitemap or meta behavior without checking the target website source.
 
 ### Current User
 
@@ -195,7 +207,7 @@ def get_value(self, key):
 
 ### HTTP Response
 
-Return string for HTML, dict for JSON:
+Return string/response objects for HTTP routes. Use `jsonrpc` for JSON-RPC endpoints:
 
 ```python
 # HTML response
@@ -203,8 +215,8 @@ Return string for HTML, dict for JSON:
 def html_response(self):
     return "<h1>Hello</h1>"
 
-# JSON response
-@http.route('/json', auth='public', type='json')
+# JSON-RPC response
+@http.route('/json', auth='public', type='jsonrpc')
 def json_response(self):
     return {'key': 'value'}
 ```
@@ -242,7 +254,7 @@ def download_file(self):
 ### JSON Controller
 
 ```python
-@http.route('/api/search', auth='user', type='json', methods=['POST'])
+@http.route('/api/search', auth='user', type='jsonrpc', methods=['POST'])
 def json_search(self, model, domain, fields=None):
     Model = http.request.env[model]
     records = Model.search(domain)

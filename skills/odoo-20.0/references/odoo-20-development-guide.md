@@ -4,6 +4,7 @@ Guide for developing Odoo 20 modules: creating modules, manifest, structure, and
 
 ## Table of Contents
 - [Module Structure](#module-structure)
+- [Runtime and Tooling](#runtime-and-tooling)
 - [Creating a Module](#creating-a-module)
 - [Manifest File](#manifest-file)
 - [Models](#models)
@@ -29,7 +30,7 @@ my_module/
 ├── views/
 │   └── my_model_views.xml
 ├── security/
-│   ├── ir.model.access.csv
+│   ├── ir.access.csv
 │   └── my_module_security.xml
 ├── data/
 │   └── my_module_data.xml
@@ -57,6 +58,26 @@ my_module/
 └── report/
     └── my_report.xml
 ```
+
+---
+
+## Runtime and Tooling
+
+Odoo 20 raises the development baseline to Python 3.12+ and PostgreSQL 16+. Update local virtualenvs, containers, CI images, and test databases before investigating module-level failures.
+
+Dependency notes for migrated addons:
+
+- Add explicit external dependencies for packages no longer provided by Odoo packaging, such as `pytz` or `xlwt`, when the addon still requires them.
+- Prefer Python's `zoneinfo` for new timezone code.
+- Reusing Odoo 20's `ruff.toml` means linting against Python 3.12 and stricter relative-import checks.
+
+Development command changes to check in wrappers and Docker scripts:
+
+- Odoo 20 binds HTTP to localhost by default; containers and VMs may need `--http-interface=0.0.0.0`.
+- `--stop` is available as an alias for `--stop-after-init`, but explicit flags are clearer in docs and CI.
+- Review new or changed options such as `--unsafe-policy`, `--log-config`, `--db-system`, and `--gevent-workers` before copying older command templates.
+- `odoo-bin populate` behavior is addon-backed; scripts using `populate --factors` may need the `populate` module and its dependencies.
+- Package Dockerfiles moved under `setup/docker/`; update custom packaging wrappers that referenced old `setup/package.df*` paths.
 
 ---
 
@@ -310,37 +331,36 @@ class NewModel(models.Model):
 
 ### Access Rights (CSV)
 
-File: `security/ir.model.access.csv`
+File: `security/ir.access.csv`
 
 ```csv
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_my_model_user,my.model.user,model_my_model,base.group_user,1,1,1,0
-access_my_model_manager,my.model.manager,model_my_model,group_my_module_manager,1,1,1,1
+id,name,model_id,group_id/id,operation,domain
+access_my_model_user,my.model user,my.model,base.group_user,cru,"[('create_uid', '=', user.id)]"
+access_my_model_manager,my.model manager,my.model,my_module.group_my_module_manager,crud,
 ```
 
-### Record Rules (XML)
+### Access Domains (XML)
+
+Odoo 20 stores record restrictions in the `domain` field of `ir.access` records. Do not copy older `ir.rule` examples into a 20.0 module without verifying compatibility against the target source.
 
 ```xml
 <odoo>
     <data noupdate="1">
-        <!-- User can only see their own records -->
-        <record id="my_model_user_rule" model="ir.rule">
-            <field name="name">My Model: user can see own records</field>
+        <!-- User can create/read/write their own records -->
+        <record id="access_my_model_user" model="ir.access">
+            <field name="name">My Model: user own records</field>
             <field name="model_id" ref="model_my_model"/>
-            <field name="domain_force">[('create_uid', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
+            <field name="group_id" ref="base.group_user"/>
+            <field name="operation">cru</field>
+            <field name="domain">[('create_uid', '=', user.id)]</field>
         </record>
 
         <!-- Manager can see all -->
-        <record id="my_model_manager_rule" model="ir.rule">
+        <record id="access_my_model_manager" model="ir.access">
             <field name="name">My Model: manager sees all</field>
             <field name="model_id" ref="model_my_model"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('group_my_module_manager'))]"/>
+            <field name="group_id" ref="group_my_module_manager"/>
+            <field name="operation">crud</field>
         </record>
     </data>
 </odoo>

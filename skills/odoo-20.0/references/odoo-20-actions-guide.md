@@ -31,6 +31,12 @@ A client can get actions in 4 forms:
 - A number - database identifier or external ID
 - A dictionary - client action descriptor
 
+### Odoo 20 Action Notes
+
+- Use `group_ids` on technical action/report records where access to the action itself is restricted; older `groups_id` examples are stale for 20.0 targets.
+- Activity plans and automations gained release-note improvements. When triggering activities from actions or automations, inspect the target source for role-assignment fields before hardcoding user-only assignment.
+- Sharing a link to the current search now preserves filters/grouping. If an action depends on context defaults, test copied/shared URLs as well as direct menu entry.
+
 ---
 
 ## Window Actions
@@ -82,6 +88,8 @@ When defining actions from XML data files:
 | `view_mode` | Comma-separated list of view types (e.g., `list,form`) |
 | `view_ids` | Many2many to view objects |
 | `view_id` | Specific view to add to views list |
+
+Odoo 20 stores the resolved window-action `views` value as JSON. XML definitions should still use the documented action fields, but custom scripts that write or compare stored `views` must expect JSON-backed data.
 
 ### Using ir.actions.act_window.view
 
@@ -157,6 +165,8 @@ Updates the current record(s) following `fields_lines` specifications.
 
 Executes several actions given through `child_ids`.
 
+Odoo 20 performs additional execution checks for server actions. A server action without explicit `group_ids` may require write access on the target model/records, so add explicit groups or adjust access domains when migrating actions that previously behaved as effectively unrestricted.
+
 ### Evaluation Context
 
 Available variables in server actions:
@@ -179,10 +189,10 @@ Available variables in server actions:
 |-----------|------|-------------|
 | `name` | string | Used as file name if `print_report_name` not specified |
 | `model` | string | Model your report will be about |
-| `report_type` | string | `qweb-pdf` or `qweb-html` |
+| `report_type` | string | Report type such as `qweb-pdf-wkhtmltopdf` or `qweb-html` |
 | `report_name` | string | External ID of the qweb template |
 | `print_report_name` | string | Python expression for report name |
-| `groups_id` | Many2many | Groups allowed to view/use the report |
+| `group_ids` | Many2many | Groups allowed to view/use the report |
 | `multi` | boolean | If True, not displayed on form view |
 | `paperformat_id` | Many2one | Paper format to use |
 | `attachment_use` | boolean | Generate once, then reprint from stored report |
@@ -224,6 +234,8 @@ If you define your report through a `<record>` and want it in the Print menu:
 ```
 
 Tells the client to start the Point of Sale interface.
+
+Client action `params` is JSON-backed through text storage in Odoo 20. XML data or migration scripts should provide valid dict/JSON-like values, not arbitrary Python-only objects.
 
 ---
 

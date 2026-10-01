@@ -4,7 +4,20 @@ End-to-end workflow for migrating an OCA addon/module from one Odoo major versio
 
 ## Scope
 
-This guide covers normal OCA module migration and `[MIG]` pull request preparation. It does not cover OpenUpgrade. Do not use OpenUpgrade commands, `upgrade_analysis.txt`, or OpenUpgrade data-model analysis as the workflow.
+This guide covers normal OCA module migration and `[MIG]` pull request preparation. It does not cover OpenUpgrade: do not adopt OpenUpgrade's operating model, its commands, or its workflow for a normal OCA `[MIG]` port.
+
+The OCA version guides cover **framework changes** only, and say so themselves. For data-model changes of each core module, the guides point at the `upgrade_analysis.txt` files inside the OpenUpgrade project: <https://github.com/OCA/OpenUpgrade>. Reading that file for data-model deltas is part of the OCA protocol; running an OpenUpgrade migration is not.
+
+## Before Migrating
+
+The OCA protocol opens every version guide with a short preamble. Follow it:
+
+- Update yourself with the latest OCA Conventions: <https://odoo-community.org/page/contributing>
+- Subscribe to the mailing list of the related project: <https://odoo-community.org/groups>
+- On the corresponding GitHub issue named `Migration to version <target>`, announce which module(s) you want to migrate
+- Install `pre-commit`
+
+The issue announcement is the documented OCA step, not an optional courtesy. Treat it as part of the community workflow when the user wants PR-ready output, and confirm the issue title and repository with the user before posting.
 
 ## Inputs To Detect
 
@@ -31,19 +44,27 @@ Use `$ODOO_SOURCE` for framework code lookup. Use `$ODOO_BASE_COMMAND` as the lo
 1. Confirm source version, target version, repo, and module.
 2. Inspect the target branch module state, if any, and the source branch module history.
 3. Verify that the source and target branches exist on the OCA repository before creating migration work.
-4. Announce or confirm work on the related OCA migration issue when the user wants PR-ready community workflow.
+4. Announce or confirm work on the related OCA migration issue when the user wants PR-ready community workflow. This is the documented OCA step, not an optional courtesy; see [Before Migrating](#before-migrating).
 5. Create a migration branch from the target branch, named like `<target>-mig-<module>`.
 6. Apply source-branch module commits onto target branch using the OCA patch flow.
 7. Resolve conflicts without dropping history unless the user explicitly chooses a different strategy.
-8. Run the OCA-recommended formatter/pre-commit pass first when the target version guide calls for it.
-9. Commit mechanical formatting separately when the guide recommends that convention.
+8. Run the pre-commit pass described in [Mechanical Cleanup Pass](#mechanical-cleanup-pass) before the semantic migration fixes.
+9. Commit the mechanical formatting separately as `[IMP] $module: pre-commit auto fixes`, using `--no-verify` only for this OCA mechanical-formatting exception and only after the user confirms it.
 10. Update the module for the target version, applying every intermediate version checklist.
 11. Bump `__manifest__.py` version to `<target>.1.0.0` unless repo policy says otherwise.
-12. Remove obsolete previous-version `migrations/` folders for normal OCA module migration.
+12. Remove the `migrations` folder carried over from the previous version.
 13. Update imports, XML, views, assets, manifest data, docs, tests, and security as required.
 14. Discover likely Odoo install/update/test commands from repo docs/config, `$ODOO_TOOL_README`, and `$ODOO_BASE_COMMAND`, then ask the user before running them.
 15. Run agreed verification and fix failures.
-16. Prepare final commit and PR title in OCA format: `[<target>][MIG] <module>: Migration to <target>`.
+16. Commit as `[MIG] $module: Migration to <target>`.
+17. After explicit user confirmation, push the migration branch to the contributor's fork and open the pull request, using the title `[<target>][MIG] <module>: Migration to <target>`. See [Delivery To The OCA Fork](#delivery-to-the-oca-fork).
+
+## Command Safety
+
+- Do not add remotes, push branches, post issue comments, or create pull requests without explicit user confirmation.
+- Do not run `git filter-branch` or `git filter-repo` without explicit user approval; both rewrite history.
+- Do not use `--no-verify` as a general workaround. In this guide it is only the OCA-documented first mechanical-formatting commit exception.
+- Before any command that touches an Odoo database or local service, discover likely commands from repo docs/config, `$ODOO_TOOL_README`, and `$ODOO_BASE_COMMAND`, then ask the user.
 
 ## Standard OCA Patch Flow
 
@@ -80,31 +101,78 @@ git add --all
 git am --continue
 ```
 
-Do not use destructive git commands unless explicitly approved by the user.
+Do not use destructive git commands unless explicitly approved by the user. `git filter-branch` and `git filter-repo` rewrite the whole history, so they always need explicit user approval.
+
+## Module Rename Requires Rewriting History
+
+If the **module is renamed** in the migration, the whole commit history has to be renamed too. This is not cosmetic: if the history is not renamed, then on the next version, when the standard patch flow is executed again, only the latest commit will be brought over. The earlier ones will be silently dropped, and the module history in OCA will fragment across the rename.
+
+These commands rewrite history. Explain the impact, confirm the old and new module names, and get explicit user approval before running either variant.
+
+On older versions of git:
+
+```bash
+git filter-branch --tree-filter 'if [ -d $module ]; then mv $module $new_module_name; fi' HEAD
+git rebase origin/$target
+```
+
+On newer ones:
+
+```bash
+git filter-repo --path-rename $module/:$new_module_name/ --refs HEAD --force
+```
 
 ## Mechanical Cleanup Pass
 
-For modern OCA migrations, run pre-commit/formatting before semantic migration fixes when the version guide says so. Treat formatting as a separate commit if the guide recommends it.
-
-Typical pattern:
+Run pre-commit/formatting before the semantic migration fixes. The OCA protocol does all the formatting in one dedicated commit the first time, with `--no-verify` so the commit hook does not re-run the linters on the whole tree. Treat this as a narrow OCA exception and ask before using it:
 
 ```bash
-pre-commit run -a
+pre-commit run -a  # to run pre-commit linters and formatters (please ignore pylint errors at this stage)
 git add -A
-git commit -m "[IMP] $module: pre-commit auto fixes"
+git commit -m "[IMP] $module: pre-commit auto fixes" --no-verify  # it is important to do all the formatting in one commit the first time
 ```
 
-If pre-commit makes no changes, continue without an empty commit.
+On this last step pre-commit may change nothing, so just ignore the message saying `Nothing to commit`.
+
+For the 13.0 guide the same step reads `pre-commit run -a  # to run black, isort and prettier (ignore pylint errors at this stage)` with commit message `[IMP] $module: black, isort, prettier`, and for 16.0 the commit message is `[IMP] $module: pre-commit stuff`. The mechanics are otherwise identical.
+
+## Delivery To The OCA Fork
+
+The migration is not finished until it reaches the OCA repository. `$user_org` below is the contributor's GitHub login or organization name.
+
+Commit the migration:
+
+```bash
+git add --all
+git commit -m "[MIG] $module: Migration to $target"
+```
+
+Add the fork as a remote and push the migration branch:
+
+Only run these commands after the user confirms the contributor fork name, remote name, authentication method, and that pushing is intended.
+
+```bash
+git remote add $user_org git@github.com:$user_org/$repo.git  # This mode requires an SSH key in the GitHub account
+# ... or ...
+git remote add $user_org https://github.com/$user_org/$repo.git  # This will required to enter user/password each time
+git push $user_org $target-mig-$module --set-upstream
+```
+
+Then create the pull request from the fork, following the link the push command prints, or see [Creating a pull request from a fork](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork).
+
+For being easily searchable and avoiding to duplicate efforts, name the pull request following this pattern: `[<target>][MIG] <module>: Migration to <target>`.
 
 ## Things Not To Do
 
 - Do not change copyright years.
 - Do not change original authors.
 - Do not mix unrelated feature changes into the migration.
-- Do not keep obsolete migration scripts from the previous version unless the repo has a concrete current-version convention requiring them.
-- Do not rely on OpenUpgrade guidance for this workflow.
+- Do not keep migration scripts carried over from the previous version. The OCA guide is unconditional: remove the `migrations` folder inside the module if it exists. If a new target-version upgrade script appears genuinely required, raise it on the migration issue instead of deciding locally.
+- Do not adopt the OpenUpgrade operating model, its commands, or its workflow for a normal `[MIG]` port.
 
 ## Multi-Version Jumps
+
+**REMARK 2** from the OCA guides: if you are doing a migration jumping several versions, check all the tasks in the successive `Migration to version XX.0` guides until arriving at the target one.
 
 For a jump across multiple versions, apply each target checklist in order.
 
@@ -115,6 +183,10 @@ Examples:
 - `17.0` to `20.0` means apply `18.0`, then `19.0`, then `20.0`.
 
 ## Version Checklists
+
+Each section below is derived from the official OCA guide for that version, at
+`https://github.com/OCA/maintainer-tools/wiki/Migration-to-version-<version>`. When this file and
+the wiki disagree, the wiki wins.
 
 ### 8.0
 
@@ -270,6 +342,8 @@ Examples:
 
 - Bump module version to `18.0.1.0.0`.
 - Remove previous-version migration scripts.
+- Remove references in `CREDITS.rst` of past financed migrations by other companies.
+- If you are comfortable with squashing commits in Git, you could consider to squash administrative commits (if any) with the previous commit for reducing commit noise. Check [Merge-commits-in-pull-requests](https://github.com/OCA/maintainer-tools/wiki/Merge-commits-in-pull-requests#mergesquash-the-commits-generated-by-bots-or-weblate) for details.
 - Replace `tree` view type with `list` in Python, JS, and XML, but avoid renaming XML IDs solely because they contain `tree`.
 - Replace context key `tree_view_ref` with `list_view_ref`.
 - Replace `user_has_groups` with `self.env.user.has_group`.
@@ -279,41 +353,116 @@ Examples:
 - Replace `_check_recursion()` with `_has_cycle()`.
 - Review `copy` and `copy_data`; they now work on multiple records.
 - Replace field `group_operator` with `aggregator`.
+- Be careful with searches on non-stored related fields: they don't log a warning anymore, they throw an exception.
 - Override `search_fetch` instead of `search` when modifying search results where applicable.
 - Consider `path` on `ir.actions.act_window` for nicer URLs.
 - Replace `<div class="oe_chatter">...` with `<chatter />`.
+- Missing fields used in expressions (`invisible`, `column_invisible`, `readonly`, `required`, `context`, `domain`) are now added to the views as invisible ones automatically. If you encounter fields in views with `invisible="True"` or `invisible="1"`, they can probably be removed for cleanliness, as they are auto-added. Reference: [odoo/odoo#137031](https://github.com/odoo/odoo/pull/137031).
 - Simplify kanban views: `kanban-box` becomes `card`, fields can be regular field definitions, and obsolete tooltip/colorpicker patterns should be updated.
 - Remove `/** @odoo-module **/` from JS files where the version/repo convention allows it.
 - Replace `from odoo import registry` with `from odoo.modules.registry import Registry`.
 - Prefer `self.env._` for translations where useful.
+- If the module contains any company dependent field, a migration script is required for the OpenUpgrade path. Example: [OCA/sale-workflow#3958](https://github.com/OCA/sale-workflow/pull/3958/files). This is the one exception in this section to the "remove previous-version migration scripts" rule, and it applies to the OpenUpgrade path only; a normal OCA `[MIG]` port still does not adopt it, see [Scope](#scope).
 - Replace JS tour `extra_trigger` with a separate step using that trigger.
+- On JS test tours, remove `test: true,` from the JS definition. Example: [OCA/mass-mailing#29](https://github.com/OCA/mass-mailing/pull/29/changes).
+- Add tests to increase code coverage.
+- Disable tracking by setting `tracking_disable` on the whole test env, e.g. `cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))`, or evaluate the use of `BaseCommon` as base test class if you need to setup company, currency, users and groups in a special way.
 
 ### 19.0
 
 - Bump module version to `19.0.1.0.0`.
 - Remove previous-version migration scripts.
-- Replace `groups_id` with `group_ids` on views, menus, actions, reports, users, and related technical records where applicable.
+- Remove references in `CREDITS.rst` of past financed migrations by other companies.
+- If you are comfortable with squashing commits in Git, you could consider to squash administrative commits (if any) with the previous commit for reducing commit noise. Check [Merge-commits-in-pull-requests](https://github.com/OCA/maintainer-tools/wiki/Merge-commits-in-pull-requests#mergesquash-the-commits-generated-by-bots-or-weblate) for details. See also the 13.0 bullet in this file for the Weblate warning about not squashing translator-authored commits.
+- On `res.groups`, the `category_id` field disappears, replaced by the new field `privilege_id`, which points to a new model `res.groups.privilege`, that you may need to create as well if you are defining a new permission section. More info at [odoo/odoo@33637d13](https://github.com/odoo/odoo/commit/33637d137ed52f5faabaafd5c208e187042be8eb).
+- Replace `groups_id` with `group_ids` on views, menus, actions, reports, users, and related technical records where applicable. Specifically, the technical models with this change are `res.users`, `ir.ui.view`, `ir.ui.menu`, `ir.actions`, `ir.actions.report` and `website.page.properties`. More info at [odoo/odoo#179354](https://github.com/odoo/odoo/pull/179354).
 - Replace `self._cr`, `self._uid`, and `self._context` with `self.env.cr`, `self.env.uid`, and `self.env.context`.
-- Replace `odoo.osv.expression` usage with `odoo.fields.Domain` or the new domain APIs.
-- Replace `_sql_constraints` with `models.Constraint` and indexes with `models.Index` where applicable.
-- Replace manual timezone handling through context/pytz with `self.env.tz` where applicable.
-- Replace field parameter `auto_join` with `bypass_search_access`.
-- Replace `read_group` with `_read_group` for backend processes or `formatted_read_group` for public calls.
-- Replace controller route `type="json"` with `type="jsonrpc"`.
-- Search methods for non-stored computed fields should return a `Domain` object instead of a list domain.
-- Replace `toggle_active` usage with explicit `action_archive` or `action_unarchive` where appropriate.
-- Consider `@api.private` for methods with no initial underscore that should not be RPC-accessible.
-- Import `SUPERUSER_ID` from `api` instead of directly from `odoo`.
-- Replace `@ormcache_context` with `@ormcache` and explicit context-key parameters.
-- Replace `urllib.parse.urljoin` with `odoo.tools.urls.urljoin` where applicable.
-- Replace `name_search` override parameter `args` with `domain`.
-- Tests should not rely on demo data being installed by default; create needed test data directly.
-- Fake model tests can use native registry helpers instead of `odoo-test-helper` when appropriate.
+- Replace `odoo.osv.expression` usage with `odoo.fields.Domain` expressions. More info at [odoo/odoo#217708](https://github.com/odoo/odoo/pull/217708).
+- Replace `_sql_constraints` with `models.Constraint` and indexes with `models.Index` where applicable. More info at [odoo/odoo#175783](https://github.com/odoo/odoo/pull/175783).
+- Replace manual timezone handling through context/pytz with `self.env.tz` where applicable. Check more details in [odoo/odoo#221541](https://github.com/odoo/odoo/pull/221541).
+- Replace field parameter `auto_join` with `bypass_search_access`. More info at [odoo/odoo#219627](https://github.com/odoo/odoo/pull/219627).
+- Replace `read_group` with `_read_group` for backend processes or `formatted_read_group` for public calls. More info at [odoo/odoo#163300](https://github.com/odoo/odoo/pull/163300).
+- Replace controller route `type="json"` with `type="jsonrpc"`. More info at [odoo/odoo#183636](https://github.com/odoo/odoo/pull/183636).
+- Search methods for non-stored computed fields should return a `Domain` object instead of a list domain. More info at [odoo/odoo@4f0d4670ed](https://github.com/odoo/odoo/commit/4f0d4670edea0e989fc939e3b2e75cefd351cfc3).
+- If you are overriding any of these search methods, and want to introspect the arguments of the search (`operator` and `value`), take into account that the domain passed in the original search may not match, because the domain optimizer may change it. Example: having a search over a boolean field this way, `model.search([("boolean_field", "=", True)])`, the method `_search_boolean_field` will receive as operator `in` (not `=`) and as value `OrderedSet([True])`, not `True`.
+- In general, you can replace the use of traditional domains with lists by `Domain` objects (in searches, `filtered_domain`, etc), for clearer syntax and better optimization. Example: [OCA/commission#646](https://github.com/OCA/commission/pull/646/commits/c6a99353a7caf383350640a5ee28ca586cd14e46#diff-01f804f51f9fa191855019e02883f8d65c56f4cd2394fbf6687d6b211d0c2be5L17-R26).
+- Replace `toggle_active` usage with explicit `action_archive` or `action_unarchive` where appropriate. More info at [odoo/odoo#183691](https://github.com/odoo/odoo/pull/183691).
+- Consider `@api.private` for methods with no initial underscore that should not be RPC-accessible. More info at [odoo/odoo#195402](https://github.com/odoo/odoo/pull/195402).
+- You may now use new dynamic dates parameters for domains. More info at [odoo/odoo#216665](https://github.com/odoo/odoo/pull/216665).
+- Import `SUPERUSER_ID` from `api` instead of directly from `odoo`. More info at [odoo/odoo@d6a955f10483](https://github.com/odoo/odoo/commit/d6a955f10483).
+- Replace `@ormcache_context` with `@ormcache` and explicit context-key parameters. More info at [odoo/odoo#220725](https://github.com/odoo/odoo/pull/220725).
+- Replace `urllib.parse.urljoin` with `odoo.tools.urls.urljoin` where applicable. More info at [odoo/odoo@977e62d91f3e](https://github.com/odoo/odoo/commit/977e62d91f3e).
+- You may want to use the new `odoo.domain` and `odoo.Domain` API for domain manipulation. See some examples at [odoo/odoo#170009](https://github.com/odoo/odoo/pull/170009).
+- Replace `name_search` override parameter `args` with `domain`. More info at [odoo/odoo@e35bcedab2](https://github.com/odoo/odoo/commit/e35bcedab20048807aa3aa17dd8d1e4ea932e3d5).
+- Remove decorator `@api.returns`, and adapt any call relying on the former behavior. More info at [odoo/odoo#182709](https://github.com/odoo/odoo/pull/182709). This is a separate 19.0 change from the 13.0 batch removal of `@api.multi`, `@api.returns`, `@api.one`, `@api.cr`, and `@api.model_cr`; both apply when migrating across those versions.
+- Remove `string` and `expand` attributes from the `<group>` tags in search views, like done in [odoo/odoo#220023](https://github.com/odoo/odoo/pull/220023).
+- Add tests to increase code coverage.
+- Disable tracking by setting `tracking_disable` on the whole test env, e.g. `cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))`, or evaluate the use of `BaseCommon` as base test class if you need to set up company, currency, users and groups in a special way.
+- Tests should not rely on demo data being installed by default; create needed test data directly. Demo data is no longer installed by default, and Odoo advises not to rely on it.
+- If you were using the `odoo-test-helper` library for loading some fake model in the tests, you can now do it natively without the library.
+
+  Before:
+
+  ```python
+  from odoo_test_helper import FakeModelLoader
+
+  @classmethod
+  def setUpClass(cls):
+      ...
+      cls.loader = FakeModelLoader(cls.env, cls.__module__)
+      cls.loader.backup_registry()
+      from .fake_models import FakeModel
+      cls.loader.update_registry((FakeModel,))
+
+  @classmethod
+  def tearDownClass(cls):
+      cls.loader.restore_registry()
+      ...
+  ```
+
+  Now:
+
+  ```python
+  from odoo.orm.model_classes import add_to_registry
+
+  @classmethod
+  def setUpClass(cls):
+      ...
+      from .fake_models import FakeModel
+      add_to_registry(cls.registry, FakeModel)
+      cls.registry._setup_models__(cls.env.cr, ["fake.model"])
+      cls.registry.init_models(cls.env.cr, ["fake.model"], {"models_to_check": True})
+      cls.addClassCleanup(cls.registry.__delitem__, "fake.model")
+  ```
+
+- Check tasks of previous versions if you are migrating from lower versions than 18. It's also recommended to check past migration guides for things not done in previous migrations.
 
 ### 20.0
 
+#### Official OCA 20.0 Guide Items
+
+The OCA guide for 20.0 is deliberately short. It has exactly four tasks
+(<https://github.com/OCA/maintainer-tools/wiki/Migration-to-version-20.0>, lines 14-17):
+
+1. Bump module version to `20.0.1.0.0`.
+2. Remove any possible migration script from previous version (in a nutshell, remove the
+   `migrations` folder inside the module if it exists).
+3. Remove references in `CREDITS.rst` of past financed migrations by other companies.
+4. If you are comfortable with squashing commits in Git, you could consider to squash
+   administrative commits (if any) with the previous commit for reducing commit noise. Check
+   [Merge-commits-in-pull-requests](https://github.com/OCA/maintainer-tools/wiki/Merge-commits-in-pull-requests#mergesquash-the-commits-generated-by-bots-or-weblate)
+   for details.
+
+The 20.0 guide has no framework-change list, unlike 16.0 through 19.0. That is the state of the
+official protocol, not an omission in this file.
+
+#### Author Guidance, Not From The OCA Wiki
+
+Everything in this subsection is **author guidance, not from the OCA wiki**. It is written for
+the case where the wiki is silent and the migration still has to be done. The target Odoo 20
+source and the wiki remain authoritative wherever they say something different.
+
 - Confirm that the OCA repository has a `20.0` target branch and that the migration issue or PR context is available before starting.
-- Bump module version to `20.0.1.0.0`, unless the repository uses a different module-version policy.
 - Use Python 3.12 through 3.14 within the Odoo 20-supported range and PostgreSQL 16 or newer for local verification.
 - Re-run the 19.0 checklist against the Odoo 20 source; do not assume that a 19.0-compatible API, XML ID, asset, or frontend pattern remains unchanged.
 - Review model declarations using `models.Constraint`, `models.Index`, `models.UniqueIndex`, `fields.Domain`, `search_fetch`, and `fetch` against the target source and module behavior.
@@ -322,11 +471,17 @@ Examples:
 - Verify manifest dependencies, asset bundles, JavaScript module conventions, OWL components, registries, services, and templates against Odoo 20 web source.
 - Re-check controllers, JSON/HTTP route types, CSRF behavior, portal ownership, public visibility, `sudo()` boundaries, and multi-company access.
 - Add or update ORM, access, HTTP, website, JavaScript, asset, and browser-tour tests at the behavior seam where the module uses them.
-- If data migration scripts are required, use the Odoo upgrade-script contract: `migrate(cr, version)` under `migrations/<full-module-version>/` or the repository's established `upgrades/` convention.
-- Name upgrade scripts with `pre-`, `post-`, or `end-` prefixes and use lexical ordering when multiple scripts share a phase.
-- Use `odoo.upgrade.util` only when the repository and target execution environment explicitly support it; do not turn a normal OCA port into an OpenUpgrade migration.
-- Keep compatibility changes separate from feature changes, remove obsolete pre-20 migration folders, preserve authorship/copyright, and update translations and documentation.
+- Keep compatibility changes separate from feature changes, preserve authorship/copyright, and update translations and documentation.
 - Verify CI, pre-commit, module loading, and the final `[20.0][MIG] <module>: Migration to 20.0` PR title.
+
+The `migrations` folder rule above has no exception in the wiki. If you believe a new upgrade
+script is genuinely required for a 20.0 migration, that is a deviation from the OCA protocol and
+needs to be raised on the migration issue, not decided locally. For reference, when an upgrade
+script is genuinely unavoidable, the Odoo contract is `migrate(cr, version)` under
+`migrations/<full-module-version>/` or the repository's established `upgrades/` convention, with
+`pre-`, `post-`, or `end-` prefixes and lexical ordering when several scripts share a phase. Use
+`odoo.upgrade.util` only when the repository and target execution environment explicitly support
+it.
 
 ## Odoo 20 Source References
 

@@ -1,13 +1,14 @@
 # Odoo 20 Security Guide
 
-Guide for Odoo 20 security: access rights, record rules, field permissions, and security pitfalls.
+Guide for Odoo 20 security: access rights with domains, groups, field permissions, and security pitfalls.
 
 ## Table of Contents
 
 - [Security Overview](#security-overview)
 - [Groups](#groups)
-- [Access Rights (ACL)](#access-rights-acl)
-- [Record Rules](#record-rules)
+- [Access Rights](#access-rights)
+- [Access Domains](#access-domains)
+- [Access APIs](#access-apis)
 - [Field Access](#field-access)
 - [Security Pitfalls](#security-pitfalls)
 
@@ -15,12 +16,12 @@ Guide for Odoo 20 security: access rights, record rules, field permissions, and 
 
 ## Security Overview
 
-Odoo provides two main data-driven mechanisms to manage access:
+Odoo 20 consolidates model access and record filtering into access records:
 
-1. **Access Rights (ACL)** - Grants access to an entire model for operations
-2. **Record Rules** - Conditions that must be satisfied for operations
+1. **Access Rights** - `ir.access` records grant operations on a model.
+2. **Access Domains** - the `domain` on each access record restricts which records that operation applies to.
 
-Both are linked to users through **groups**.
+Both are linked to users through **groups**. Legacy `ir.model.access`/`perm_*` CSVs and `ir.rule` examples are not the Odoo 20 shape; verify existing migrated modules against the target source before copying older snippets.
 
 ---
 
@@ -35,19 +36,24 @@ behavior before changing group definitions.
 
 ### Key Attributes
 
-| Attribute      | Description                                                               |
-| -------------- | ------------------------------------------------------------------------- |
-| `name`         | User-readable identification (role/purpose)                               |
-| `category_id`  | Module category used by the group configuration                         |
-| `implied_ids`  | Other groups to set on the user alongside this one                        |
-| `comment`      | Additional notes                                                          |
+| Attribute      | Description                                        |
+| -------------- | -------------------------------------------------- |
+| `name`         | User-readable identification (role/purpose)        |
+| `privilege_id` | Permission section; replaces direct `category_id`  |
+| `implied_ids`  | Other groups implied by this one                   |
+| `comment`      | Additional notes                                   |
 
 ### Example
 
 ```xml
+<record id="privilege_my_module" model="res.groups.privilege">
+    <field name="name">My Module</field>
+    <field name="category_id" ref="base.module_category_my_module"/>
+</record>
+
 <record id="group_my_module_user" model="res.groups">
     <field name="name">My Module User</field>
-    <field name="category_id" ref="base.module_category_my_module"/>
+    <field name="privilege_id" ref="privilege_my_module"/>
     <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     <field name="comment">Users can access my module features.</field>
 </record>
@@ -55,71 +61,55 @@ behavior before changing group definitions.
 
 ---
 
-## Access Rights (ACL)
+## Access Rights
 
-Access rights **grant** access to an entire model for operations. If no access rights matches an operation, the user doesn't have access.
+Access rights **grant** operations on a model. If no `ir.access` record grants an operation to the user for the target record, access is denied.
 
-Access rights are **additive** - a user's accesses are the union of all groups.
+`ir.access` replaces the old `ir.model.access`/`perm_read`/`perm_write`/`perm_create`/`perm_unlink` shape in Odoo 20. A single record uses an `operation` string containing any of `c`, `r`, `u`, and `d`, and may include a record `domain`.
 
-`ir.model.access` - Access control list entries.
+`security/ir.access.csv` - access records.
 
 ### Key Attributes
 
-| Attribute     | Description                               |
-| ------------- | ----------------------------------------- |
-| `name`        | Purpose or role of the group              |
-| `model_id`    | Model whose access the ACL controls       |
-| `group_id`    | Group granted access (empty = every user) |
-| `perm_create` | Grant create access                       |
-| `perm_read`   | Grant read access                         |
-| `perm_write`  | Grant write access                        |
-| `perm_unlink` | Grant unlink (delete) access              |
+| Attribute   | Description                                                     |
+| ----------- | --------------------------------------------------------------- |
+| `name`      | Purpose or role of the access record                            |
+| `model_id`  | Model technical name in CSV, or model record in XML             |
+| `group_id`  | Group granted access; use `base.group_everyone` for all users; leave empty only for global restrictions |
+| `operation` | Combination of `c`, `r`, `u`, `d` for create/read/update/delete |
+| `domain`    | Optional domain limiting records for this access                |
 
 ### Example CSV (Common Format)
 
-File: `security/ir.model.access.csv`
+File: `security/ir.access.csv`
 
 ```csv
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_my_model_user,my.model.user,model_my_model,group_my_module_user,1,1,0,0
-access_my_model_manager,my.model.manager,model_my_model,group_my_module_manager,1,1,1,1
+id,name,model_id,group_id/id,operation,domain
+access_my_model_user,my.model user,my.model,my_module.group_my_module_user,ru,"[('create_uid', '=', user.id)]"
+access_my_model_manager,my.model manager,my.model,my_module.group_my_module_manager,crud,
 ```
 
 ### Example XML
 
 ```xml
-<record id="access_my_model_user" model="ir.model.access">
+<record id="access_my_model_user" model="ir.access">
     <field name="name">my.model.user</field>
-    <field name="model_id" ref="model_my_model"/>
+    <field name="model_id" ref="my_module.model_my_model"/>
     <field name="group_id" ref="group_my_module_user"/>
-    <field name="perm_read" eval="1"/>
-    <field name="perm_write" eval="1"/>
-    <field name="perm_create" eval="0"/>
-    <field name="perm_unlink" eval="0"/>
+    <field name="operation">ru</field>
+    <field name="domain">[('create_uid', '=', user.id)]</field>
 </record>
 ```
 
 ---
 
-## Record Rules
+## Access Domains
 
-Record rules are **conditions** which must be satisfied for operations. They are evaluated record-by-record, following access rights.
+Access domains are the Odoo 20 replacement for separate record-rule records in normal module security data. Put record restrictions directly on the relevant `ir.access` row.
 
-Record rules are **default-allow**: if access rights grant access and no rule applies, access is granted.
+An empty `domain` means unrestricted access for that access row. A non-empty domain is evaluated with the same contextual variables used by core access CSVs.
 
-`ir.rule` - Record rules.
-
-### Key Attributes
-
-| Attribute                                               | Description                                        |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| `name`                                                  | Description of the rule                            |
-| `model_id`                                              | Model to which the rule applies                    |
-| `groups`                                                | Groups to which access is granted (empty = global) |
-| `domain_force`                                          | Domain predicate (Python expression)               |
-| `perm_read`, `perm_write`, `perm_create`, `perm_unlink` | Operations the rule applies to (all by default)    |
-
-### Domain Force Variables
+### Domain Variables
 
 | Variable      | Description                                     |
 | ------------- | ----------------------------------------------- |
@@ -128,38 +118,53 @@ Record rules are **default-allow**: if access rights grant access and no rule ap
 | `company_id`  | Current user's selected company (single id)     |
 | `company_ids` | All companies the user has access (list of ids) |
 
-### Example: Multi-Company Rule
+### Example: Multi-Company Access
+
+```csv
+id,name,model_id,group_id/id,operation,domain
+my_model_company_access,my.model company,my.model,base.group_everyone,crud,"['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]"
+```
 
 ```xml
-<record id="my_model_company_rule" model="ir.rule">
+<record id="my_model_company_access" model="ir.access">
     <field name="name">My Module: multi-company</field>
     <field name="model_id" ref="model_my_model"/>
-    <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    <field name="group_id" ref="base.group_everyone"/>
+    <field name="operation">crud</field>
+    <field name="domain">['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]</field>
 </record>
 ```
 
 ### Example: User-Only Records
 
 ```xml
-<record id="my_model_user_rule" model="ir.rule">
+<record id="my_model_user_access" model="ir.access">
     <field name="name">My Module: user records</field>
     <field name="model_id" ref="model_my_model"/>
-    <field name="domain_force">[('user_id', '=', user.id)]</field>
-    <field name="groups" eval="[(4, ref('group_my_module_user'))]"/>
+    <field name="group_id" ref="group_my_module_user"/>
+    <field name="operation">ru</field>
+    <field name="domain">[('user_id', '=', user.id)]</field>
 </record>
 ```
 
-### Global vs Group Rules
+Group-less `ir.access` rows are for global restrictions, not normal global grants. For access intended for all users, set `group_id/id` to `base.group_everyone`. Treat any group-less row as high-risk: test portal/public/internal users, multi-company users, and negative cases whenever a domain is added or changed.
 
-There's a large difference between global and group rules:
+---
 
-| Rule Type              | Behavior                                           |
-| ---------------------- | -------------------------------------------------- |
-| **Global** (no groups) | **Intersect** - all global rules must be satisfied |
-| **Group** rules        | **Unify** - any group rule can be satisfied        |
-| **Global + Group**     | **Intersect** - first group rule restricts access  |
+## Access APIs
 
-> **Danger**: Creating multiple global rules is risky - possible to create non-overlapping rulesets which will remove all access.
+Odoo 20 access checks are centered on access domains composed from `ir.access` records. Use the new recordset APIs when writing module code:
+
+| API | Purpose |
+| --- | ------- |
+| `check_access(operation)` | Raise if the recordset is not allowed for `operation` |
+| `has_access(operation)` | Return whether the recordset is allowed |
+| `_filtered_access(operation)` | Return only records accessible for `operation` |
+| `_access_domain(operation)` | Return the domain expressing access for `operation` |
+| `has_field_access(field, operation)` | Return whether a field is accessible |
+| `check_field_access(field, operation)` | Raise if a field is not accessible |
+
+When migrating from older versions, audit calls to `check_access_rights`, `check_access_rule`, `_filter_access_rules`, `_filter_access_rules_python`, `check_field_access_rights`, and custom `_check_access` overrides. Custom model-level access behavior should usually extend `_access_domain()` so it composes with `ir.access` grants and restrictions.
 
 ---
 

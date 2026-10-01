@@ -8,6 +8,7 @@ Guide for building OWL (Owl Web Library) components in Odoo 20.
 - [Component Structure](#component-structure)
 - [Hooks](#hooks)
 - [Services](#services)
+- [Public Website Interactions](#public-website-interactions)
 - [State Management](#state-management)
 - [QWeb Templates](#qweb-templates)
 - [Translations](#translations)
@@ -17,6 +18,15 @@ Guide for building OWL (Owl Web Library) components in Odoo 20.
 ## OWL Overview
 
 OWL is a JavaScript framework for building web UI components in Odoo.
+
+Odoo 20 uses OWL 3. Code copied from Odoo 16-19 often needs active migration before it can run correctly.
+
+### Odoo 20 Web Client Notes
+
+- Font Awesome icons have been replaced by Material Symbols in the Odoo 20 UI. Before adding or migrating an icon, inspect the target component/template for the supported icon syntax instead of copying older `fa-*` classes.
+- Offline mode can create, edit, archive, unarchive, and delete records, and can reuse previous searches. Custom components that write data should handle RPC failure/retry states and avoid assuming a write either succeeded immediately or failed permanently.
+- Push notifications no longer use Firebase; they use Odoo's internal push tooling. Do not add Firebase dependencies for 20.0 notifications without verifying the target app still requires them.
+- Many2one fields have improved backend synchronization and large-list behavior. Custom field widgets should pass dynamic `domain` and `context` through the standard props and verify the saved backend value after onchange/save.
 
 ### Key Concepts
 
@@ -35,13 +45,13 @@ OWL is a JavaScript framework for building web UI components in Odoo.
 ### Basic Component
 
 ```javascript
-import { Component } from "@odoo/owl";
+import { Component, t, useProps } from "@odoo/owl";
 
 export class MyComponent extends Component {
   static template = "my_module.MyComponent";
-  static props = {
-    value: { type: String, optional: true },
-  };
+  props = useProps({
+    value: t.string().optional(),
+  });
 
   setup() {
     // Component setup
@@ -66,6 +76,8 @@ registry.category("actions").add("my_component", MyComponent);
 ---
 
 ## Hooks
+
+OWL 3 rejects static `props` and `defaultProps` through Odoo's compatibility layer. Declare props with `useProps(...)`. OWL 2-style `useEffect(effect, deps)` is also invalid; migrate to OWL 3 signal-based `useEffect` or use `useLayoutEffect` temporarily when following Odoo's compatibility-layer migration path.
 
 ### Setup Hook
 
@@ -119,6 +131,10 @@ onWillUnmount() {
 ---
 
 ## Services
+
+Odoo 20 is moving frontend infrastructure from services toward OWL plugins and resources. `useService("orm")`, `useService("action")`, and other compatibility service calls still exist for many surfaces, but imports ending in `_service.js` are migration-risk patterns. For converted code, prefer the plugin-aware API exposed by the target source.
+
+Direct reads of `env.debug` and `env.isSmall` are not Odoo 20-safe. Use `usePlugin(DebugModePlugin)` or global `odoo.debug` for debug state, and `useService("ui").isSmall`, `env.services.ui.isSmall`, or `UIPlugin` signals for viewport state. Do not rely on `Component.env` being initialized globally by the webclient.
 
 ### Common Services
 
@@ -207,6 +223,32 @@ this.notification.notify({
 
 ---
 
+## Public Website Interactions
+
+Odoo 20 public website JavaScript no longer targets the old public-widget stack. Migrate code using `@web/legacy/js/public/public_widget`, `@web/legacy/js/public/minimal_dom`, `publicWidget.Widget.extend(...)`, or `root.widget` to `Interaction` classes.
+
+```javascript
+import { registry } from "@web/core/registry";
+import { Interaction } from "@web/public/interaction";
+
+export class MyPublicInteraction extends Interaction {
+    static selector = ".my_public_selector";
+    dynamicContent = {
+        _root: { "t-on-click": this.onClick },
+    };
+
+    onClick() {
+        // Handle public-page interaction
+    }
+}
+
+registry.category("public.interactions").add("my_module.my_public_interaction", MyPublicInteraction);
+```
+
+Use helpers from `@web/public/utils` where the public website layer exposes them instead of reusing old legacy DOM utilities.
+
+---
+
 ## State Management
 
 ### useState
@@ -249,7 +291,7 @@ setup() {
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="my_module.MyComponent" owl="1">
+    <t t-name="my_module.MyComponent">
         <div class="my_component">
             <h1 t-out="props.title"/>
             <p t-out="state.message"/>
@@ -331,7 +373,7 @@ export class Counter extends Component {
 
 ```xml
 <templates xml:space="preserve">
-    <t t-name="my_module.Counter" owl="1">
+    <t t-name="my_module.Counter">
         <div class="counter">
             <button class="btn btn-secondary" t-on-click="decrement">-</button>
             <span t-out="state.count"/>

@@ -25,11 +25,24 @@ Guide for creating views in Odoo 20: list, form, search, kanban, calendar, graph
 | Form     | `<form>`     | Single record view             |
 | Search   | `<search>`   | Search/filter view             |
 | Kanban   | `<kanban>`   | Card-based view                |
+| Card     | `<card>`     | Reusable card fragment for supported views |
 | Calendar | `<calendar>` | Calendar view                  |
+| Gantt    | `<gantt>`    | Timeline/scheduling view       |
+| Map      | `<map>`      | Geographic view                |
 | Graph    | `<graph>`    | Chart view                     |
 | Pivot    | `<pivot>`    | Pivot table view               |
 | Activity | `<activity>` | Activity view                  |
 | QWeb     | `<template>` | HTML/PDF template              |
+
+### Odoo 20 View Notes
+
+- List and Kanban views support multi-record drag and drop in standard flows. If a module depends on record ordering or stage moves, test multi-select drag/drop, not only single-record moves.
+- Odoo 20 adds reusable `card` views. Kanban and calendar popovers can reuse card views through `card_id` where the target RNG exposes it.
+- List views support grouped `<column>` nodes and `dialog_size`; validate custom XML against the target 20.0 RNG when using those additions.
+- Search filters support `end_date`, with stricter validation that the referenced date fields are valid search fields.
+- Calendar and Gantt scheduling can use side panels for unscheduling/scheduling records, and Gantt supports buffer visualization. Verify whether a feature is a declarative view attribute or standard app behavior before documenting XML snippets.
+- Map views can expose unlocated records. Custom address domains should account for records with incomplete geocoding data.
+- Use Material Symbols rather than Font Awesome classes when adding new Odoo 20 web-client icons, after checking the target template/component convention.
 
 ---
 
@@ -66,6 +79,18 @@ Guide for creating views in Odoo 20: list, form, search, kanban, calendar, graph
 | `multi_edit` | Enable multi-row editing           |
 | `limit`      | Default records per page           |
 | `create`     | Show create button (default: true) |
+| `dialog_size` | Dialog size for forms opened from the list |
+
+Grouped list columns are available in Odoo 20 where supported by the target RNG:
+
+```xml
+<list>
+    <column string="Main">
+        <field name="name"/>
+        <field name="code"/>
+    </column>
+</list>
+```
 
 ### Decoration
 
@@ -202,7 +227,7 @@ Or use shortcut:
             <field name="code"/>
             <filter string="Active" name="active" domain="[('active','=',True)]"/>
             <separator/>
-            <group expand="0" string="Group By">
+            <group>
                 <filter string="State" name="state" context="{'group_by': 'state'}"/>
             </group>
         </search>
@@ -227,12 +252,14 @@ Or use shortcut:
     <separator/>
 
     <!-- Group by -->
-    <group expand="0" string="Group By">
+    <group>
         <filter string="State" name="state" context="{'group_by': 'state'}"/>
         <filter string="Partner" name="partner_id" context="{'group_by': 'partner_id'}"/>
     </group>
 </search>
 ```
+
+Date filters can use `end_date` when both date fields are valid search fields in the target model/view definition.
 
 ---
 
@@ -308,6 +335,8 @@ Or use shortcut:
 | `date_delay` | Duration field (alternative to date_end) |
 | `color`      | Field for color                          |
 | `mode`       | Default view (month, week, day)          |
+| `schedule`   | Enable scheduling behavior where supported |
+| `card_id`    | Reusable card view for calendar popovers |
 
 ---
 

@@ -230,6 +230,8 @@ Datetime fields are stored as UTC. Conversion is client-side.
 
 Many-to-one relation (foreign key).
 
+Odoo 20 release notes call out improved Many2one synchronization with the backend and better add/remove behavior for large lists. When changing a custom Many2one widget or dynamic domain, test both the form value and the server-side record value after onchange/save, not just the visible label.
+
 ```python
 partner_id = fields.Many2one('res.partner', string="Partner")
 user_id = fields.Many2one('res.users', 'User', default=lambda self: self.env.user)
@@ -469,8 +471,8 @@ partner_name = fields.Char(
 | `default` | Default value or callable |
 | `help` | Tooltip text |
 | `groups` | Comma-separated group IDs |
-| `copy` | Copy on duplicate (default: True) |
-| `track_visibilty` | Track changes in chatter (`always`, `onchange`, `never`) |
+| `copy` | Copy on duplicate; may be a boolean or callable |
+| `tracking` | Track changes in chatter when the model inherits `mail.thread` |
 
 ### Examples
 
@@ -482,9 +484,13 @@ name = fields.Char(
     default='Untitled',
     help="Enter the name",
     copy=True,
-    tracking=True,  # Equivalent to track_visibility='always'
+    tracking=True,
 )
 ```
+
+Odoo 20 removed stored tracking-value records from the default tracking framework; tracking messages are generated on the fly. Do not query `mail.tracking.value` for new 20.0 code unless a dedicated compatibility module is installed.
+
+Odoo 20 allows callable copy behavior, for example `copy=lambda record: record._copy_value()`. Code that introspects fields should not assume `field.copy` is always a boolean. Also replace older `group_operator=` field parameters with `aggregator=`; the Odoo 19 compatibility translation is gone.
 
 ---
 

@@ -24,7 +24,7 @@ Master index for all Odoo 20 development guides. Read the appropriate guide from
 | OWL Components | `references/odoo-20-owl-guide.md`         | Building OWL UI components, hooks, services             |
 | Performance    | `references/odoo-20-performance-guide.md` | Optimizing queries, fixing slow code, preventing N+1    |
 | Reports        | `references/odoo-20-reports-guide.md`     | QWeb reports, PDF/HTML, templates, paper formats        |
-| Security       | `references/odoo-20-security-guide.md`    | Access rights, record rules, field permissions          |
+| Security       | `references/odoo-20-security-guide.md`    | Access rights, access domains, field permissions        |
 | Testing        | `references/odoo-20-testing-guide.md`     | Writing tests, mocking, assertions, browser testing     |
 | Transactions   | `references/odoo-20-transaction-guide.md` | Handling database errors, savepoints, UniqueViolation   |
 | Translation    | `references/odoo-20-translation-guide.md` | Adding translations, localization, i18n                 |
@@ -68,11 +68,13 @@ The guide taxonomy follows these Odoo 20 source areas:
 - `odoo/models.py` - ORM implementation
 - `odoo/fields.py` - Field types
 - `odoo/api.py` - Decorators
-- `odoo/http.py` - HTTP layer
+- `odoo/http/` - HTTP layer internals; use public `odoo.http` APIs in addons
 - `odoo/exceptions.py` - Exception types
 - `odoo/tools/translate.py` - Translation system
 - `odoo/addons/base/models/res_lang.py` - Language model
 - `addons/web/static/src/core/l10n/translation.js` - JS translations
+
+Odoo 20 release-note-sensitive areas include Python 3.12+/PostgreSQL 16+, `ir.access` domains, access APIs, group privileges, OWL 3/frontend testing, website `Interaction` classes, engine-based reports, mail tracking, Material Symbols, offline web behavior, translation-aware import/export, and website/portal URL/form/SEO behavior. Read the relevant reference guide before applying older-version snippets.
 
 For website and portal work, also compose this skill with `odoo-website`,
 `odoo-web-security`, and `odoo-web-testing`.

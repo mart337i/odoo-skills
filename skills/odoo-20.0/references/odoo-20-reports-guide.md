@@ -16,7 +16,7 @@ Guide for creating QWeb reports in Odoo 20: PDF/HTML reports, templates, and pap
 
 ## Report Basics
 
-Reports are written in HTML/QWeb. PDF rendering is performed by wkhtmltopdf.
+Reports are written in HTML/QWeb. PDF rendering is engine-based in Odoo 20. The wkhtmltopdf implementation lives in `base_report_wkhtmltox`, and engine-specific report types include values such as `qweb-pdf-wkhtmltopdf`.
 
 Reports consist of:
 
@@ -34,7 +34,7 @@ Reports consist of:
     id="account_invoice_report"
     string="Invoice"
     model="account.move"
-    report_type="qweb-pdf"
+    report_type="qweb-pdf-wkhtmltopdf"
     name="account.report_invoice"
     file="account.report_invoice"
     print_report_name="'Invoice - %s' % (object.name)"
@@ -47,7 +47,7 @@ Reports consist of:
 <record id="my_report" model="ir.actions.report">
     <field name="name">My Report</field>
     <field name="model">my.model</field>
-    <field name="report_type">qweb-pdf</field>
+    <field name="report_type">qweb-pdf-wkhtmltopdf</field>
     <field name="report_name">my_module.my_template</field>
     <field name="print_report_name">'My Report - %s' % (object.name)</field>
     <field name="binding_model_id" ref="model_my_model"/>
@@ -62,16 +62,18 @@ Reports consist of:
 | `id`                | External identifier                       |
 | `string`            | Report name                               |
 | `model`             | Model for the report                      |
-| `report_type`       | `qweb-pdf` or `qweb-html`                 |
+| `report_type`       | Report engine type, such as `qweb-pdf-wkhtmltopdf` or `qweb-html` |
 | `name`              | External ID of QWeb template              |
 | `file`              | Same as name (for backward compatibility) |
 | `print_report_name` | Python expression for filename            |
 | `paperformat_id`    | Paper format                              |
 | `binding_model_id`  | Model to show in Print menu               |
-| `groups_id`         | Groups allowed to use report              |
+| `group_ids`         | Groups allowed to use report              |
 | `multi`             | If True, don't show on form view          |
 | `attachment_use`    | Generate once, reprint from stored        |
 | `attachment`        | Python expression for attachment          |
+
+Override `_run_pdf_engine()` or `_run_pdf_engine_without_processing()` for engine-specific rendering behavior. Avoid overriding old low-level wkhtmltopdf hooks in base report internals. Odoo 20 `report_action` payloads expose `report_name`, `report_type`, and `name`; do not rely on `report_file` being present.
 
 ---
 
@@ -229,6 +231,8 @@ Use custom values in template:
 ---
 
 ## Translatable Reports
+
+Odoo 20 release notes call out improved report translation review: translated report content can be edited in larger contextual blocks with technical context visible. After editing translations, render the same report in each target language and check pagination, labels, amounts, RTL/LTR layout, and attachment names.
 
 ### Two-Template Approach
 
